@@ -2,7 +2,7 @@
 Pretty much a way to better search Spotify playlists with arbitrary logic.
 
 ## Requirements
-- Python packages: Requests, Selenium
+- Python packages: [Requests](http://docs.python-requests.org/en/master/), [Selenium](https://pypi.python.org/pypi/selenium)
 - [Geckodriver](https://github.com/mozilla/geckodriver/releases) for Selenium
 
 ## How It Did
