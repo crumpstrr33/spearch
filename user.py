@@ -31,15 +31,14 @@ class User(Client):
     URL = 'https://api.spotify.com/v1/'
     ME_URL = URL + 'me/'
 
-    def __init__(self, user, token, token_birth):
-        self.user = user
+    def __init__(self, token, token_birth):
         self.token = token
         self.token_birth = token_birth
         self.headers = {'Authorization': 'Bearer ' + self.token}
         self.headers_json = {'Authorization': 'Bearer ' + self.token,
                              'Content-Type': 'application/json'}
+        self.user = requests.get(self.ME_URL, headers=self.headers).json()['id']
         self.playlists, self.pl_ids, self.pl_lens = self._get_playlists()
-        self.queue = None
 
     def _get_playlists(self):
         """
@@ -82,9 +81,9 @@ class User(Client):
         pl_id - The playlist id of the user to get the song data for
         """
         # Make sure the playlist name exists
-        if pl_id not in self.playlists:
+        if pl_id not in self.pl_ids:
             raise Exception('Playlist ID {} not found for user {}'.format(
-                playlist, self.user))
+                pl_id, self.user))
 
         # Get playlist number of tracks for given playlist name
         pl_len = self.pl_lens[self.pl_ids.index(pl_id)]
