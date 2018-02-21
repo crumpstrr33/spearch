@@ -1,4 +1,4 @@
-import time
+from datetime import datetime as dt
 from itertools import compress
 from math import ceil
 from json import dumps
@@ -311,10 +311,10 @@ class User(Client):
         """
         Determines whether or not the access token as expired
         """
-        return self.token_time_left() > 3500
+        return self.age() > 3500
 
-    def token_time_left(self):
+    def age(self):
         """
         Returns how much time in seconds the token has left
         """
-        return abs(time.time() - self.token_birth)
+        return (dt.now() - self.token_birth).total_seconds()

@@ -1,4 +1,5 @@
-import time
+from datetime import datetime as dt
+from time import sleep
 from configparser import ConfigParser
 import os
 
@@ -56,8 +57,8 @@ class Client:
             auth = (self.client_id, self.client_secret)
             token = requests.post(self.TOKEN_URL, data=data, auth=auth).json()
 
-            # Return time.time() as its "birthdate" to determine if expired
-            return token['access_token'], time.time()
+            # Return current time as its "birthdate" to determine if expired
+            return token['access_token'], dt.now()
         else:
             # Do everything fresh if not in cache (i.e. .ini file)
             return self._request_token()
@@ -87,7 +88,7 @@ class Client:
 
         # Don't do anything until the URL changes
         while browser.current_url.startswith(self.ROOT_URL):
-            time.sleep(0.1)
+            sleep(0.1)
 
         # When it does, strip the code and close the browser
         code = browser.current_url.split('?')[1].split('=')[1]
@@ -124,4 +125,4 @@ class Client:
         self.refresh_token = refresh_token
 
         # Return the token and its "birthdate"
-        return access_token, time.time()
+        return access_token, dt.now()
