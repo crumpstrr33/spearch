@@ -30,6 +30,7 @@ def _not_iter(l1):
 class User(Client):
     URL = 'https://api.spotify.com/v1/'
     ME_URL = URL + 'me/'
+    TRACK = 'spotify:track:'
 
     def __init__(self, token, token_birth):
         self.token = token
@@ -39,6 +40,7 @@ class User(Client):
                              'Content-Type': 'application/json'}
         self.user = requests.get(self.ME_URL, headers=self.headers).json()['id']
         self.playlists, self.pl_ids, self.pl_lens = self._get_playlists()
+        self.queue = []
 
     def _get_playlists(self):
         """
@@ -240,14 +242,28 @@ class User(Client):
 
         return _not_iter(mask) if _not else mask
 
-    def create_queue(self, songs):
+    def create_queue(self, songs, new_queue=False, duplicate=False):
         """
         Given a list of song data, create a queue
 
         Parameters:
         songs - The song data to create the queue from
+        new_queue - (default False) If True, will create a new queue, else it
+                    will append to the previous queue
+        duplicate - (default False) If True, will add duplicate songs, else not
         """
-        self.play(data={'uris': ['spotify:track:' + x[1] for x in songs]})
+        # Remake the queue if it's a new queue
+        if new_queue:
+            self.queue = [self.TRACK + x[1] for x in songs]
+        else:
+            for song in songs:
+                song_uri = self.TRACK + song[1]
+                if not duplicate:
+                    if song_uri not in self.queue:
+                        self.queue.append(song_uri)
+                else:
+                    self.queue.append(song_uri)
+        self.play(data={'uris': self.queue})
 
     def create_playlist(self, songs, name, public=True):
         """
@@ -284,7 +300,7 @@ class User(Client):
         songs - The songs to add to the 'queue'
         """
         url = self.URL + 'users/{}/playlists/{}/tracks'.format(self.user, pl_id)
-        data = {'uris': ['spotify:track:' + x[1] for x in songs]}
+        data = {'uris': [self.TRACK + x[1] for x in songs]}
         requests.post(url, headers=self.headers_json, data=dumps(data))
 
         # Increase number of songs for this playlist by this addition
