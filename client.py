@@ -7,7 +7,6 @@ from selenium import webdriver
 import requests
 
 
-# TODO Add state [x.split('=')[1] for x in url.split('?')[1].split('&')]
 class Client:
     ROOT_URL = 'https://accounts.spotify.com'
     REQUEST_URL = ROOT_URL + '/authorize'
@@ -76,7 +75,9 @@ class Client:
         """
         Gets a string called 'code' that appears in the URL after logging in
         and being redirected to REDIRECT_URI. So this gets that code and closes
-        the browser. At the moment, ONLY WORKS WITH FIREFOX.
+        the browser. At the moment, ONLY WORKS WITH FIREFOX. Also, could prob
+        do the waiting parts better than while sleep loops, but this works for
+        now so I'm gonna keep it.
         """
         auth_url = self._request_auth_url()
 
@@ -86,7 +87,15 @@ class Client:
         # Load authentication URL
         browser.get(auth_url)
 
-        # Don't do anything until the URL changes
+        # Wait until login button is pressed
+        while browser.current_url.startswith(self.ROOT_URL + '/en/authorize?'):
+            sleep(0.1)
+
+        # Automatically fill the username input field
+        login_username = browser.find_element_by_id('login-username')
+        login_username.send_keys(self.user)
+
+        # Wait until the login is attempted
         while browser.current_url.startswith(self.ROOT_URL):
             sleep(0.1)
 
