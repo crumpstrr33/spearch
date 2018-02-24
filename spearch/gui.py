@@ -3,6 +3,7 @@ import sys
 from PyQt5.QtWidgets import (QMainWindow, QDialog, QWidget, QPushButton,
     QLineEdit, QHBoxLayout, QVBoxLayout, QApplication, QComboBox, QTableWidget,
     QTableWidgetItem, QHeaderView, QTabWidget, QVBoxLayout, QAction)
+from PyQt5.Qt import Qt
 
 from client import Client
 from user import User
@@ -107,8 +108,7 @@ class SongUI(QWidget):
         self.user = user
         self.init_ui()
 
-        # If a playlist is selected, run list_songs by passing the playlist ID
-        # of the playlist chosen
+        # Display the songs of a playlist that is selected from the combo box
         self.playlists.currentIndexChanged.connect(
             lambda: self.list_songs(
                 self.user.pl_ids[self.playlists.currentIndex()]))
@@ -117,12 +117,16 @@ class SongUI(QWidget):
         # Create the stuff
         self.playlists = QComboBox(self)
         self.playlist_songs = QTableWidget(0, 2, self)
+
+        # Add column headers to song list
         self.playlist_songs.setHorizontalHeaderLabels(['Song', 'Artist'])
+        # Add playlists to the combo box
         self.playlists.addItems(self.user.playlists)
 
         # Style the list of songs
         header = self.playlist_songs.horizontalHeader()
         header.setStyleSheet('QHeaderView { font-weight: 600; font-size: 10pt;}')
+        # Each column takes up 50% of the available horizontal space
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
 
@@ -141,7 +145,10 @@ class SongUI(QWidget):
         """
         # Get the song data
         songs = self.user.get_playlist_songs(pl_id)
-        # Reset the table widget
+
+        # Reset the table widget, must disable sorting first otherwise the
+        # repopulating of the artist column is messed up
+        self.playlist_songs.setSortingEnabled(False)
         self.playlist_songs.clear()
         self.playlist_songs.setHorizontalHeaderLabels(['Song', 'Artist'])
         self.playlist_songs.verticalHeader().setVisible(False)
@@ -155,8 +162,12 @@ class SongUI(QWidget):
             self.playlist_songs.setItem(n, 0, QTableWidgetItem(song[0]))
             self.playlist_songs.setItem(n, 1, QTableWidgetItem(', '.join(song[2])))
 
+        # Turn sorting back on after populating the fields
+        self.playlist_songs.setSortingEnabled(True)
+
 
 class QueueUI(QWidget):
+    # TODO All of it
 
     def __init__(self, parent, user):
         """

@@ -293,7 +293,7 @@ class User(Client):
     def add_to_playlist(self, pl_id, songs):
         """
         Adds songs to a playlist and updates the info on the user's playlists.
-        This will add duplicates. TODO add a functionality for that.
+        This will add duplicates.
 
         Parameters:
         pl_id - The id of the playlist
