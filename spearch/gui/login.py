@@ -43,7 +43,7 @@ class Login(QDialog):
         Login with text in the input. This creates a Client object which starts
         up the Spotify login. That's where the password is typed.
         """
-        print(gpar_dir)
         self.client = Client(self.input.text(), SCOPE,
-                             path.join(gpar_dir, 'client.ini'))
+                             path.join(gpar_dir, 'client.ini'),
+                             path.join(gpar_dir, 'geckodriver.exe'))
         self.close()

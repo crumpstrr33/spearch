@@ -13,7 +13,8 @@ class Client:
     TOKEN_URL = ROOT_URL + '/api/token'
     REDIRECT_URI = 'https://duckduckgo.com/'
 
-    def __init__(self, user, scope=None, path='client.ini'):
+    def __init__(self, user, scope=None, path_ini='client.ini',
+                 path_gd='geckodriver.exe'):
         """
         Gets a access token based on a user.
 
@@ -28,14 +29,14 @@ class Client:
         them all: https://developer.spotify.com/web-api/using-scopes/
         """
         self.user = user
-        self.path = path
+        self.path_ini = path_ini
+        self.geckodriver_path = path_gd
         self.scope = scope or ''
 
         # config stores the data from the .ini file
         self.config = ConfigParser()
-        self.config.read(self.path)
+        self.config.read(self.path_ini)
         self.client_id, self.client_secret = self.config['CLIENT'].values()
-        self.geckodriver_path = self.config['MISC']['geckodriver']
 
         self.access_token, self.token_birth = self.get_token()
 
@@ -129,7 +130,7 @@ class Client:
             section_name = self.user + ' ' + self.scope
             self.config.add_section(section_name)
             self.config.set(section_name, 'refresh_token', refresh_token)
-            with open(self.path, 'w') as ini_file:
+            with open(self.path_ini, 'w') as ini_file:
                 self.config.write(ini_file)
         self.refresh_token = refresh_token
 
