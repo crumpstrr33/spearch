@@ -20,13 +20,15 @@ class Client:
 
         Parameters:
         user - The name of the Spotify user
-        path - (default 'client.ini') The path to the .ini file with at least
-        the client ID and client secret under CLIENT and the path to the
-        geckodriver.exe under MISC. Can also have cached refresh tokens under
-        USERNAME SCOPE
         scope - (default None) The scope used to get the token, it determines
-        what the app is allowed to do/what the user agrees to. Look here for
-        them all: https://developer.spotify.com/web-api/using-scopes/
+                what the app is allowed to do/what the user agrees to. Look here
+                for them all:
+                    https://developer.spotify.com/web-api/using-scopes/
+        path_ini - (default 'client.ini') The path to the .ini file with the
+                   client ID and client secret under CLIENT. Can also have 
+                   cached refresh tokens under USERNAME SCOPE
+        path_gd - (default 'geckodriver.exe') The path to the geckodriver 
+                  executable
         """
         self.user = user
         self.path_ini = path_ini
