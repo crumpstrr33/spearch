@@ -5,8 +5,6 @@ from json import dumps
 
 import requests
 
-from client import Client
-
 
 """
 Binary operators as functions for the song filtering
@@ -27,7 +25,7 @@ def _not_iter(l1):
     return [not x for x in l1]
 
 
-class User(Client):
+class User:
     URL = 'https://api.spotify.com/v1/'
     ME_URL = URL + 'me/'
     TRACK = 'spotify:track:'
@@ -93,7 +91,7 @@ class User(Client):
         # Form URL to get song data
         url = self.URL + 'users/{}/playlists/{}/tracks'.format(self.user, pl_id)
 
-        songs = []
+        songs = set()
         # API only allows 100 songs at a time for some reason, so keep
         # requesting 100 until we got them all
         for offset in range(ceil(pl_len / 100)):
@@ -102,9 +100,9 @@ class User(Client):
             song_data = song_response.json()['items']
 
             for song in song_data:
-                # Append each song/artist combo to songs list
-                songs.append((song['track']['name'], song['track']['id'],
-                            [a['name'] for a in song['track']['artists']]))
+                songs.add((song['track']['name'],
+                           tuple([data['name'] for data in song['track']['artists']]),
+                           song['track']['id']))
 
         return songs
 
@@ -116,7 +114,7 @@ class User(Client):
         mask = []
         for song in songs:
             # Map to lowercase, check if names given in artist list for songs
-            mask.append(logic([y.lower() in map(lambda x: x.lower(), song[2])
+            mask.append(logic([y.lower() in map(lambda x: x.lower(), song[1])
                                for y in filt]))
         return mask
 
@@ -129,7 +127,7 @@ class User(Client):
         for song in songs:
             # In lowercase, double loop to check against each artist for songs
             mask.append(any([logic([y.lower() in x.lower() for y in filt])
-                             for x in song[2]]))
+                             for x in song[1]]))
         return mask
 
     @staticmethod
@@ -196,7 +194,7 @@ class User(Client):
                  each other and the _and and _or dict if they exist)
         """
         mask = self._build_mask(songs, _and=_and, _or=_or, **kwargs)
-        return list(compress(songs, mask))
+        return set(compress(songs, mask))
 
     def _build_mask(self, songs, mask=None, _and=None, _or=None, _not=False,
                     or_mask=True, **kwargs):
@@ -242,22 +240,24 @@ class User(Client):
 
         return _not_iter(mask) if _not else mask
 
-    def create_queue(self, songs, new_queue=False, duplicate=False):
+    def create_queue(self, song_ids, new_queue=False, duplicate=False):
         """
         Given a list of song data, create a queue
 
         Parameters:
-        songs - The song data to create the queue from
+        song_ids - The song IDs to create the queue from
         new_queue - (default False) If True, will create a new queue, else it
                     will append to the previous queue
         duplicate - (default False) If True, will add duplicate songs, else not
         """
         # Remake the queue if it's a new queue
         if new_queue:
-            self.queue = [self.TRACK + x[1] for x in songs]
+            self.queue = [self.TRACK + song_id for song_id in song_ids]
         else:
-            for song in songs:
-                song_uri = self.TRACK + song[1]
+            # Else add to existing queue
+            for song_id in song_ids:
+                song_uri = self.TRACK + song_id
+                # Don't add duplicate to queue if not wanted
                 if not duplicate:
                     if song_uri not in self.queue:
                         self.queue.append(song_uri)
@@ -300,7 +300,7 @@ class User(Client):
         songs - The songs to add to the 'queue'
         """
         url = self.URL + 'users/{}/playlists/{}/tracks'.format(self.user, pl_id)
-        data = {'uris': [self.TRACK + x[1] for x in songs]}
+        data = {'uris': [self.TRACK + song[2] for song in songs]}
         requests.post(url, headers=self.headers_json, data=dumps(data))
 
         # Increase number of songs for this playlist by this addition
