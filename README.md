@@ -13,11 +13,8 @@ Pretty much a way to better search Spotify playlists with arbitrary logic.
 [CLIENT]
 client_id = <client_id>
 client_secret = <client_secret>
-
-[MISC]
-geckodriver = <absolute_or_relative_path_to_geckodriver.exe>
 ```
-- Using IPython, Jupyter Notebook or the like, create a `Client` object with `client = Client(<username>, <scope>)`. The scope includes the permissions for the login. For now, use:
+- Using IPython, Jupyter Notebook or the like, create a `Client` object with `client = Client(<username>, <scope>, <path_to_ini>, <path_to_geckodriver>)`. The scope includes the permissions for the login. For now, use:
 ```
 user-modify-playback-state playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public
 ```
