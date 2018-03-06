@@ -240,7 +240,7 @@ class User:
 
         return _not_iter(mask) if _not else mask
 
-    def create_queue(self, song_ids, new_queue=False, duplicate=False):
+    def create_queue(self, song_ids, new_queue=True, duplicate=False):
         """
         Given a list of song data, create a queue
 
