@@ -1,7 +1,9 @@
-from PyQt5.QtWidgets import (QWidget, QComboBox, QTableWidget, QHeaderView,
-    QVBoxLayout, QHBoxLayout, QTableWidgetItem, QPushButton, QAbstractItemView,
-    QListWidget)
+from PyQt5.QtWidgets import (QWidget, QComboBox, QVBoxLayout, QHBoxLayout,
+    QTableWidgetItem, QPushButton)
 from PyQt5 import QtCore
+
+from custom_widgets import SongArtistTableWidget
+from popups import NewPlaylistDialog
 
 
 class SongUI(QWidget):
@@ -30,20 +32,7 @@ class SongUI(QWidget):
         self.add_songs.setMaximumWidth(1.2 * self.add_songs.width())
 
         # Create song list
-        self.songs_table = QTableWidget(0, 3, self)
-        self.songs_table.setHorizontalHeaderLabels(['Songs', 'Artists'])
-        self.songs_table.setShowGrid(False)
-        self.songs_table.verticalHeader().setVisible(False)
-        # Doesn't allow editing
-        self.songs_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # Hidden column containing song IDs
-        self.songs_table.setColumnHidden(2, True)
-        # Styling of Songs and Artists headers
-        header = self.songs_table.horizontalHeader()
-        header.setStyleSheet('QHeaderView { font-weight: 600; font-size: 10pt;}')
-        # Stretch to fill space and apply styling to header
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.songs_table = SongArtistTableWidget(0, 3, self)
 
         # Put it all together
         h_box1 = QHBoxLayout()
@@ -102,30 +91,25 @@ class CreateQueueUI(QWidget):
         # Clear the queue list
         self.clear_songs.clicked.connect(self.clear_queue)
 
+        # Make playlist
+        self.create_playlist.clicked.connect(self.make_new_playlist)
+
     def init_ui(self):
         # Button to add songs to queue
         self.create_songs = QPushButton('Create', self)
         # Button to clear songs from queue
         self.clear_songs = QPushButton('Clear', self)
+        # Button to save current songs to a new playlist
+        self.create_playlist = QPushButton('Make Playlist', self)
 
         # List of songs and their artists
-        self.queue_list = QTableWidget(0, 3, self)
-        self.queue_list.setHorizontalHeaderLabels(['Song', 'Artist'])
-        self.queue_list.setShowGrid(False)
-        self.queue_list.verticalHeader().setVisible(False)
-        # Doesn't allow editing
-        self.queue_list.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # Hidden column containing song IDs
-        self.queue_list.setColumnHidden(2, True)
-        # Style the list of songs
-        header = self.queue_list.horizontalHeader()
-        header.setStyleSheet('QHeaderView { font-weight: 600; font-size: 10pt;}')
-        # Each column takes up 50% of the available horizontal space
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.queue_list = SongArtistTableWidget(0, 3, self)
 
+        # Put it all together
         v_box = QVBoxLayout()
         v_box.addStretch()
+        v_box.addWidget(self.create_playlist)
+        v_box.addWidget(self.clear_songs)
         v_box.addWidget(self.create_songs)
 
         h_box = QHBoxLayout()
@@ -141,6 +125,17 @@ class CreateQueueUI(QWidget):
         for _ in range(self.queue_list.rowCount()):
             self.queue_list.removeRow(0)
 
+    def make_new_playlist(self):
+        """
+        Creates a new playlist from the current listed songs
+        """
+        playlist_name, private, ok = NewPlaylistDialog.getPlaylistName()
+
+        if ok:
+            song_ids = [self.queue_list.item(row, 2).text() for row in
+                            range(self.queue_list.rowCount())]
+            self.user.create_playlist(song_ids, playlist_name, not private)
+
 
 class CurrentQueueUI(QWidget):
 
@@ -151,19 +146,7 @@ class CurrentQueueUI(QWidget):
 
     def init_ui(self):
         # List of songs and their artists
-        self.current_queue = QTableWidget(0, 3, self)
-        self.current_queue.setHorizontalHeaderLabels(['Song', 'Artist'])
-        self.current_queue.setShowGrid(False)
-        # Doesn't allow editing
-        self.current_queue.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # Hidden column containing song IDs
-        self.current_queue.setColumnHidden(2, True)
-        # Style the list of songs
-        header = self.current_queue.horizontalHeader()
-        header.setStyleSheet('QHeaderView { font-weight: 600; font-size: 10pt;}')
-        # Each column takes up 50% of the available horizontal space
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.current_queue = SongArtistTableWidget(0, 3, self)
 
         v_box = QVBoxLayout()
         v_box.addWidget(self.current_queue)

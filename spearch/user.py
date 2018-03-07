@@ -246,7 +246,7 @@ class User:
 
         Parameters:
         song_ids - The song IDs to create the queue from
-        new_queue - (default False) If True, will create a new queue, else it
+        new_queue - (default True) If True, will create a new queue, else it
                     will append to the previous queue
         duplicate - (default False) If True, will add duplicate songs, else not
         """
@@ -300,7 +300,7 @@ class User:
         songs - The songs to add to the 'queue'
         """
         url = self.URL + 'users/{}/playlists/{}/tracks'.format(self.user, pl_id)
-        data = {'uris': [self.TRACK + song[2] for song in songs]}
+        data = {'uris': [self.TRACK + song for song in songs]}
         requests.post(url, headers=self.headers_json, data=dumps(data))
 
         # Increase number of songs for this playlist by this addition
