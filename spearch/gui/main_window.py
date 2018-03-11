@@ -5,15 +5,17 @@ cur_dir = path.dirname(path.abspath(getsourcefile(lambda: 0)))
 sys.path.insert(0, cur_dir[:cur_dir.rfind(path.sep)])
 
 from PyQt5.QtWidgets import (QMainWindow, QAction, QWidget, QVBoxLayout,
-    QTabWidget, QTableWidgetItem)
+    QTabWidget, QTableWidgetItem, qApp, QDialog)
 from PyQt5 import QtCore
 
 from tabs import SongUI, CreateQueueUI, CurrentQueueUI
+from popups import Login
 from user import User
 sys.path.pop(0)
 
 
 class Window(QMainWindow):
+    NEW_USER_EXIT_CODE = 322
 
     def __init__(self, client):
         """
@@ -29,17 +31,44 @@ class Window(QMainWindow):
         self.user = User(self.client.access_token, self.client.token_birth)
 
         self.init_ui()
+        self.init_menu()
 
     def init_ui(self):
         self.setWindowTitle('Spearch')
         self.resize(600, 400)
 
-        self.menu = self.menuBar()
-        file_menu = self.menu.addMenu('&File')
-        file_menu.addAction(QAction('Hello', self))
-
         self.tabs = Tabs(self, self.user)
         self.setCentralWidget(self.tabs)
+
+    def init_menu(self):
+        # Init menu
+        self.menu = self.menuBar()
+        file_menu = self.menu.addMenu('File')
+
+        # New user
+        new_user = QAction('&New User', self)
+        new_user.setShortcut('Ctrl+N')
+        new_user.setStatusTip('Sign in with new user')
+        new_user.triggered.connect(self.relogin)
+
+        # Quit
+        quit_app = QAction('&Quit', self)
+        quit_app.setShortcut('Ctrl+Q')
+        quit_app.setStatusTip('Quit Application')
+        quit_app.triggered.connect(qApp.quit)
+
+        # Add to File
+        file_menu.addAction(new_user)
+        file_menu.addSeparator()
+        file_menu.addAction(quit_app)
+
+    def relogin(self):
+        login = Login()
+        result = login.exec_()
+
+        if result == QDialog.Accepted:
+            self.client = login.client
+            qApp.exit(self.NEW_USER_EXIT_CODE)
 
 
 class Tabs(QWidget):

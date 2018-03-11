@@ -27,7 +27,7 @@ class Login(QDialog):
         """
         super().__init__()
         self.button = QPushButton('Login', self)
-        self.button.clicked.connect(self.login)
+        self.button.clicked.connect(self.accept)
         self.input = QLineEdit()
         self.input.setText('chester_mccrumpet')
 
@@ -41,7 +41,7 @@ class Login(QDialog):
         self.setLayout(h_box)
         self.setWindowTitle('Spearch')
 
-    def login(self):
+    def accept(self):
         """
         Login with text in the input. This creates a Client object which starts
         up the Spotify login. That's where the password is typed.
@@ -49,13 +49,14 @@ class Login(QDialog):
         self.client = Client(self.input.text(), SCOPE,
                              path.join(gpar_dir, 'client.ini'),
                              path.join(gpar_dir, 'geckodriver.exe'))
-        self.close()
+        # Added to give a correct return from exec_()
+        super().accept()
 
 
 class NewPlaylistDialog(QDialog):
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__()
         self.setWindowTitle('Playlist Name')
 
         # Header
@@ -87,8 +88,8 @@ class NewPlaylistDialog(QDialog):
         layout.addWidget(buttons)
 
     @staticmethod
-    def getPlaylistName(parent=None):
-        dialog = NewPlaylistDialog(parent)
+    def getPlaylistName():
+        dialog = NewPlaylistDialog()
         result = dialog.exec_()
 
         playlist_name = dialog.playlist_name.text()
