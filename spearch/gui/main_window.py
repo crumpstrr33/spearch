@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QMainWindow, QAction, QWidget, QVBoxLayout,
     QTabWidget, QTableWidgetItem, qApp, QDialog)
 from PyQt5 import QtCore
 
-from tabs import SongUI, CreateQueueUI, CurrentQueueUI
+from tabs import SongUI, CreateQueueUI, CurrentQueueUI, FilterUI
 from popups import Login
 from user import User
 sys.path.pop(0)
@@ -84,15 +84,18 @@ class Tabs(QWidget):
 
         # Initialize tab screen
         self.tabs = QTabWidget()
+        self.tabs.resize(300, 200)
+
         self.tab1 = SongUI(self, user)
         self.tab2 = CreateQueueUI(self, user)
         self.tab3 = CurrentQueueUI(self, user) 
-        self.tabs.resize(300, 200)
+        self.tab4 = FilterUI(self, user)
 
         # Add tabs
         self.tabs.addTab(self.tab1, 'Playlist Songs')
         self.tabs.addTab(self.tab2, 'Queue Maker')
         self.tabs.addTab(self.tab3, 'Current Queue')
+        self.tabs.addTab(self.tab4, 'Filter Playlists')
 
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
