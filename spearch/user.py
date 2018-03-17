@@ -197,24 +197,30 @@ class User:
         return set(compress(songs, mask))
 
     def _build_mask(self, songs, mask=None, _and=None, _or=None, _not=False,
-                    or_mask=True, **kwargs):
+                    or_logic=True, **kwargs):
         """
         Creates the mask used to filter a list of songs recursively. Called from
         filter_playlist.
         """
-        if _or:
-            or_mask = self._build_mask(songs, **_or)
-        if _and:
-            and_mask = self._build_mask(songs, **_and, or_mask=False)
-
         # Whether to OR the masks or AND them
-        logic = _or_iter if or_mask else _and_iter
+        logic = _or_iter if or_logic else _and_iter
         # Initialize mask with Falses for OR and Trues for AND
-        mask = [not or_mask] * len(songs)
+        mask = [not or_logic] * len(songs)
+
+        # Turn them into lists even if just one
+        if isinstance(_and, dict):
+            _and = [_and]
+        if isinstance(_or, dict):
+            _or = [_or]
+
+        # Find the masks for the _or and _and part
         if _or:
-            mask = logic(or_mask, mask)
+            for _or_n in _or:
+                mask = logic(self._build_mask(songs, **_or_n), mask)
         if _and:
-            mask = logic(and_mask, mask)
+            for _and_n in _and:
+                print(_and_n, 'here')
+                mask = logic(self._build_mask(songs, **_and_n, or_logic=False), mask)
 
         # Add artists AND
         if 'artists_and' in kwargs:
