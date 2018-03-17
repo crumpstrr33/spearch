@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QHeaderView
+from PyQt5.QtWidgets import (QTableWidget, QAbstractItemView, QHeaderView)
 
 SongArtistHeaderStyle = '''
 QHeaderView {
@@ -7,10 +7,11 @@ QHeaderView {
 }
 '''
 
+
 class SongArtistTableWidget(QTableWidget):
 
-    def __init__(self, row, col, parent):
-        super().__init__(row, col, parent)
+    def __init__(self, parent):
+        super().__init__(0, 3, parent)
 
         # Give the headers for Song and Artists
         self.setHorizontalHeaderLabels(['Song', 'Artists'])
