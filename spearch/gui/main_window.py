@@ -84,93 +84,101 @@ class Tabs(QWidget):
 
         # Initialize tab screen
         self.tabs = QTabWidget()
-        self.tabs.resize(300, 200)
 
-        self.tab1 = SongUI(self, user)
-        self.tab2 = CreateQueueUI(self, user)
-        self.tab3 = CurrentQueueUI(self, user) 
-        self.tab4 = FilterUI(self, user)
+        self.pl_tab = SongUI(self, user)
+        self.filt_tab = FilterUI(self, user)
+        self.createq_tab = CreateQueueUI(self, user)
+        self.curq_tab = CurrentQueueUI(self, user)
 
         # Add tabs
-        self.tabs.addTab(self.tab1, 'Playlist Songs')
-        self.tabs.addTab(self.tab2, 'Queue Maker')
-        self.tabs.addTab(self.tab3, 'Current Queue')
-        self.tabs.addTab(self.tab4, 'Filter Playlists')
+        self.tabs.addTab(self.pl_tab, 'Playlist Songs')
+        self.tabs.addTab(self.filt_tab, 'Filter Playlists')
+        self.tabs.addTab(self.createq_tab, 'Queue Maker')
+        self.tabs.addTab(self.curq_tab, 'Current Queue')
 
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
         # Add currently selected songs in playlist songs tab to queue
-        self.tab1.add_songs.clicked.connect(self.add_to_queue)
+        self.pl_tab.add_songs.clicked.connect(lambda:
+            self.add_to_queue(self.pl_tab.songs_table))
+        self.filt_tab.add_songs.clicked.connect(lambda:
+            self.add_to_queue(self.filt_tab.songs_table))
 
         # Create queue with currently shown songs
-        self.tab2.create_songs.clicked.connect(self.create_queue)
+        self.createq_tab.create_songs.clicked.connect(self.create_queue)
 
-    def add_to_queue(self):
+    def add_to_queue(self, songs_table):
         """
         Creates the queue based on the songs in the queue list maker
         """
         # Current row count
-        row_count = self.tab2.queue_list.rowCount()
+        row_count = self.createq_tab.queue_list.rowCount()
         # Rows selected to add
-        selected_rows = [x.row() for x in self.tab1.songs_table.selectedIndexes()]
+        selected_rows = [x.row() for x in songs_table.selectedIndexes()]
+
+        num_skipped = 0
         # Iterate through each row of QTableWidget in Queue Maker
         for n, row in enumerate(selected_rows):
             # Skip song if no ID
-            if not self.tab1.songs_table.item(row, 2).text():
+            if not songs_table.item(row, 2).text():
+                num_skipped += 1
                 continue
 
+            # Current row index
+            ind = row_count + n - num_skipped
+
             # Create row
-            self.tab2.queue_list.insertRow(row_count + n)
+            self.createq_tab.queue_list.insertRow(ind)
 
             # Add song
-            song = QTableWidgetItem(self.tab1.songs_table.item(row, 0))
+            song = QTableWidgetItem(songs_table.item(row, 0))
             # Remove ability to select it
             song.setFlags(QtCore.Qt.ItemIsEnabled)
             song.setFlags(QtCore.Qt.ItemIsSelectable)
-            self.tab2.queue_list.setItem(row_count + n, 0, song)
+            self.createq_tab.queue_list.setItem(ind, 0, song)
 
             # Add artist(s)
-            artist = QTableWidgetItem(self.tab1.songs_table.item(row, 1).text())
+            artist = QTableWidgetItem(songs_table.item(row, 1).text())
             # Remove the ability to select it
             artist.setFlags(QtCore.Qt.ItemIsEnabled)
             artist.setFlags(QtCore.Qt.ItemIsSelectable)
-            self.tab2.queue_list.setItem(row_count + n, 1, artist)
+            self.createq_tab.queue_list.setItem(ind, 1, artist)
 
             # Hidden column with song IDs
-            song_id = QTableWidgetItem(self.tab1.songs_table.item(row, 2).text())
-            self.tab2.queue_list.setItem(row_count + n, 2, song_id)
+            song_id = QTableWidgetItem(songs_table.item(row, 2).text())
+            self.createq_tab.queue_list.setItem(ind, 2, song_id)
 
     def create_queue(self):
         """
         Creates a queue of the songs in the QTableWidget under Queue Maker
         """
         # Reset the data by removing old songs and whatnot
-        for _ in range(self.tab3.current_queue.rowCount()):
-            self.tab3.current_queue.removeRow(0)
-        self.tab3.current_queue.verticalHeader().setVisible(False)
+        for _ in range(self.curq_tab.current_queue.rowCount()):
+            self.curq_tab.current_queue.removeRow(0)
+        self.curq_tab.current_queue.verticalHeader().setVisible(False)
 
         song_ids = []
-        for row in range(self.tab2.queue_list.rowCount()):
+        for row in range(self.createq_tab.queue_list.rowCount()):
             # Create the row
-            self.tab3.current_queue.insertRow(row)
+            self.curq_tab.current_queue.insertRow(row)
 
             # Add song name
-            song = QTableWidgetItem(self.tab2.queue_list.item(row, 0).text())
+            song = QTableWidgetItem(self.createq_tab.queue_list.item(row, 0).text())
             song.setFlags(QtCore.Qt.ItemIsEnabled)
             song.setFlags(QtCore.Qt.ItemIsSelectable)
-            self.tab3.current_queue.setItem(row, 0, song)
+            self.curq_tab.current_queue.setItem(row, 0, song)
 
             # Add artist(s)
-            artist = QTableWidgetItem(self.tab2.queue_list.item(row, 1).text())
+            artist = QTableWidgetItem(self.createq_tab.queue_list.item(row, 1).text())
             artist.setFlags(QtCore.Qt.ItemIsEnabled)
             artist.setFlags(QtCore.Qt.ItemIsSelectable)
-            self.tab3.current_queue.setItem(row, 1, artist)
+            self.curq_tab.current_queue.setItem(row, 1, artist)
 
             # Hidden column with song IDs
-            song_id = QTableWidgetItem(self.tab2.queue_list.item(row, 2).text())
-            self.tab3.current_queue.setItem(row, 2, song_id)
+            song_id = QTableWidgetItem(self.createq_tab.queue_list.item(row, 2).text())
+            self.curq_tab.current_queue.setItem(row, 2, song_id)
             # Record IDs for creating queue
             song_ids.append(song_id.text())
 
