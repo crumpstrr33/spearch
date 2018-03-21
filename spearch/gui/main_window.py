@@ -63,11 +63,16 @@ class Window(QMainWindow):
         file_menu.addAction(quit_app)
 
     def relogin(self):
+        """
+        Brings up new window to log in as a new user
+        """
+        # New login window
         login = Login()
         result = login.exec_()
 
         if result == QDialog.Accepted:
             self.client = login.client
+            # Exit current app with code that tells main loop to repeat
             qApp.exit(self.NEW_USER_EXIT_CODE)
 
 
@@ -101,26 +106,32 @@ class Tabs(QWidget):
         self.setLayout(self.layout)
 
         # Add currently selected songs in playlist songs tab to queue
-        self.pl_tab.add_songs.clicked.connect(lambda:
-            self.add_to_queue(self.pl_tab.songs_table))
-        self.filt_tab.add_songs.clicked.connect(lambda:
-            self.add_to_queue(self.filt_tab.songs_table))
+        self.pl_tab.add_songs_button.clicked.connect(lambda:
+            self.add_to_queue(self.pl_tab.songs_table, True))
+        self.filt_tab.add_songs_button.clicked.connect(lambda:
+            self.add_to_queue(self.filt_tab.songs_table, False))
 
         # Create queue with currently shown songs
         self.createq_tab.create_songs.clicked.connect(self.create_queue)
 
-    def add_to_queue(self, songs_table):
+    def add_to_queue(self, songs_table, selected):
         """
-        Creates the queue based on the songs in the queue list maker
+        Creates the queue based on the songs in the queue list maker. The songs
+        added from the playlist tab are only the selected songs whereas the
+        songs added from the filter tab are all of them as determined by
+        the `selected` boolean.
         """
         # Current row count
         row_count = self.createq_tab.queue_list.rowCount()
         # Rows selected to add
-        selected_rows = [x.row() for x in songs_table.selectedIndexes()]
+        if selected:
+            row_nums = [x.row() for x in songs_table.selectedIndexes()]
+        else:
+            row_nums = range(songs_table.rowCount())
 
         num_skipped = 0
         # Iterate through each row of QTableWidget in Queue Maker
-        for n, row in enumerate(selected_rows):
+        for n, row in enumerate(row_nums):
             # Skip song if no ID
             if not songs_table.item(row, 2).text():
                 num_skipped += 1
