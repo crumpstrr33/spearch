@@ -54,6 +54,22 @@ class User:
 
         return playlists, pl_ids, pl_lens
 
+    def change_device(self, device_id):
+        """
+        Change the currently used device
+
+        Parameters:
+        device_id - The ID of the device to switch to
+        """
+        requests.put(self.ME_URL + 'player', headers=self.headers,
+                     data=dumps({'device_ids': [device_id]}))
+
+    def get_available_devices(self):
+        """
+        Get the available devices of the current user
+        """
+        return requests.get(self.ME_URL + 'player/devices', headers=self.headers).json()['devices']
+
     def play(self, data={}):
         """
         Plays the music. Can pass a dictionary of song URIs to create a queue
@@ -219,7 +235,6 @@ class User:
                 mask = logic(self._build_mask(songs, **_or_n), mask)
         if _and:
             for _and_n in _and:
-                print(_and_n, 'here')
                 mask = logic(self._build_mask(songs, **_and_n, or_logic=False), mask)
 
         # Add artists AND
