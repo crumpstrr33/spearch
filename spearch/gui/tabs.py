@@ -2,7 +2,8 @@ from collections import defaultdict
 from json import dumps
 
 from PyQt5.QtWidgets import (QWidget, QComboBox, QVBoxLayout, QHBoxLayout,
-    QTableWidgetItem, QPushButton, QGridLayout, QLineEdit, QWidgetItem)
+    QTableWidgetItem, QPushButton, QGridLayout, QLineEdit, QWidgetItem,
+    QCheckBox, QLabel)
 from PyQt5 import QtCore
 
 from custom_widgets import SongArtistTableWidget
@@ -169,11 +170,14 @@ class FilterUI(QWidget):
                         filt_dict[latest_pl][latest_logic][item_key] = ''
                         latest_filt = item_key
                 # and a LineEdit
-                if isinstance(item.widget(), QLineEdit):
+                elif isinstance(item.widget(), QLineEdit):
                     # Add comma separated keywords for the filter
                     filt_kw = list(map(lambda x: x.strip(),
                         item.widget().displayText().split(',')))
                     filt_dict[latest_pl][latest_logic][latest_filt] = filt_kw
+                # and Checkbox for whether NOT is chosen or not
+                elif isinstance(item.widget(), QCheckBox):
+                    filt_dict[latest_pl][latest_logic]['NOT'] = item.widget().isChecked()
             # or if it's a GridLayout
             elif isinstance(item, QGridLayout):
                 # Recursively run the method with the child layout and current
@@ -203,6 +207,11 @@ class FilterUI(QWidget):
                 # Init the logic dict for the filter
                 clean_dict[clean_pl][clean_logic].append({})
                 for filt, filt_data in logic_data.items():
+                    # Add NOT to dict
+                    if filt == 'NOT':
+                        clean_dict[clean_pl][clean_logic][-1]['_not'] = filt_data
+                        continue
+
                     clean_filt = filt.split('&&')[0]
                     # For each AND, append dict to the AND list and same for OR
                     clean_dict[clean_pl][clean_logic][-1][clean_filt] = filt_data
@@ -249,10 +258,17 @@ class FilterUI(QWidget):
         # Remove AND/OR logic selection
         new_logic_remove = QPushButton('Remove Logic', self)
 
+        # NOT choice for AND/OR logic
+        new_not_check = QCheckBox(self)
+        # NOT text
+        new_not_text = QLabel('Not', self)
+
         # Create grid for each block of AND/OR logic
         new_logic_grid = QGridLayout()
         new_logic_grid.addWidget(new_logic, new_logic_grid.count(), 0)
-        new_logic_grid.addWidget(new_logic_remove, new_logic_grid.count() - 1, 1)
+        new_logic_grid.addWidget(new_not_check, new_logic_grid.count() - 1, 1)
+        new_logic_grid.addWidget(new_not_text, new_logic_grid.count() - 2, 2)
+        new_logic_grid.addWidget(new_logic_remove, new_logic_grid.count() - 3, 3)
         new_logic_grid.addWidget(new_filter_add, 1000, 0)
 
         # Add a new filter combobox if this button is clicked
@@ -263,9 +279,8 @@ class FilterUI(QWidget):
         new_logic_remove.clicked.connect(lambda:
             self.remove_layout(new_logic_grid))
 
-
         # Add new layout to the parent playlist layout
-        pl_layout.addLayout(new_logic_grid, pl_layout.count(), 0)
+        pl_layout.addLayout(new_logic_grid, pl_layout.count(), 0, 1, 2)
 
     def add_filter(self, logic_layout):
         """
