@@ -7,7 +7,7 @@ gpar_dir = par_dir[:par_dir.rfind(path.sep)]
 sys.path.insert(0, par_dir)
 
 from PyQt5.QtWidgets import (QPushButton, QLineEdit, QHBoxLayout, QDialog, 
-    QDialog, QDialogButtonBox, QLabel, QCheckBox, QVBoxLayout, QHBoxLayout)
+    QDialogButtonBox, QLabel, QCheckBox, QVBoxLayout, QHBoxLayout)
 from PyQt5.QtCore import Qt
 
 from client import Client
@@ -16,7 +16,8 @@ sys.path.pop(0)
 
 SCOPE = 'user-modify-playback-state ' + \
         'playlist-read-private playlist-read-collaborative ' + \
-        'playlist-modify-private playlist-modify-public '
+        'playlist-modify-private playlist-modify-public ' + \
+        'user-read-playback-state'
 
 
 class Login(QDialog):
