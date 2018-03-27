@@ -26,17 +26,19 @@ class SongUI(QWidget):
                 self.user.pl_ids[self.playlists.currentIndex()]))
 
     def init_ui(self):
+        # Create song list
+        self.songs_table = SongArtistTableWidget(self, select_artists=False)
+
         # Create list for selection of playlists
         self.playlists = QComboBox(self)
         # Add playlists to the combo box
         self.playlists.addItems(self.user.playlists)
+        # Init add all the songs of the first playlist
+        self.add_songs(self.user.pl_ids[0])
 
         # Create button to add songs to queue
         self.add_songs_button = QPushButton('Add', self)
         self.add_songs_button.setMaximumWidth(1.2 * self.add_songs_button.width())
-
-        # Create song list
-        self.songs_table = SongArtistTableWidget(self, select_artists=False)
 
         # Put it all together
         top_row = QHBoxLayout()
