@@ -1,10 +1,12 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QDesktopWidget
 
 from main_window import Window
 from popups import Login
 
+INIT_WIDTH = 1080
+INIT_HEIGHT = 720
 
 def main():
     """
@@ -25,7 +27,9 @@ def main():
 
             client = login.client
 
-        window = Window(client)
+        screen_size = QDesktopWidget().screenGeometry()
+        window = Window(client, screen_size.height(), screen_size.width())
+        window.resize(INIT_WIDTH, INIT_HEIGHT)
         window.show()
 
         # Gets the exit code for when app is exited

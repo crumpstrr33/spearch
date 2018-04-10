@@ -12,7 +12,8 @@ from PyQt5.QtWidgets import (QMainWindow, QAction, QWidget, QVBoxLayout,
 from PyQt5.QtGui import QFont
 from PyQt5 import QtCore
 
-from tabs import SongUI, CreateQueueUI, CurrentQueueUI, FilterUI
+from tabs import (PlaylistSongsUI, FilterPlaylistsUI, QueueMakerUI,
+    CurrentQueueUI) 
 from popups import Login
 from user import User
 sys.path.pop(0)
@@ -23,7 +24,7 @@ class Window(QMainWindow):
     BOLD_FONT = QFont()
     BOLD_FONT.setBold(True)
 
-    def __init__(self, client):
+    def __init__(self, client, max_height, max_width):
         """
         Main Window of GUI.
 
@@ -36,14 +37,13 @@ class Window(QMainWindow):
         self.client = client
         self.user = User(self.client.access_token, self.client.token_birth)
 
-        self.init_ui()
+        self.init_ui(max_height, max_width)
         self.init_menu()
 
-    def init_ui(self):
+    def init_ui(self, max_height, max_width):
         self.setWindowTitle('Spearch')
-        self.resize(600, 400)
 
-        self.tabs = Tabs(self, self.user)
+        self.tabs = Tabs(self, self.user, max_height, max_width)
         self.setCentralWidget(self.tabs)
 
     def init_menu(self):
@@ -141,7 +141,7 @@ class Window(QMainWindow):
 
 class Tabs(QWidget):
 
-    def __init__(self, parent, user):
+    def __init__(self, parent, user, max_height, max_width):
         """
         Widget that creates each tab and pull the layouts for each one from
         their respective classes.
@@ -153,9 +153,9 @@ class Tabs(QWidget):
         # Initialize tab screen
         self.tabs = QTabWidget()
 
-        self.pl_tab = SongUI(self, user)
-        self.filt_tab = FilterUI(self, user)
-        self.createq_tab = CreateQueueUI(self, user)
+        self.pl_tab = PlaylistSongsUI(self, user)
+        self.filt_tab = FilterPlaylistsUI(self, user, max_height, max_width)
+        self.createq_tab = QueueMakerUI(self, user)
         self.curq_tab = CurrentQueueUI(self, user)
 
         # Add tabs

@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QTableWidget, QAbstractItemView, QHeaderView,
-    QTableWidgetItem)
+    QTableWidgetItem, QWidget, QVBoxLayout, QGroupBox, QPushButton)
 from PyQt5 import QtCore
 
 SongArtistHeaderStyle = '''
@@ -81,3 +81,18 @@ class SongArtistTableWidget(QTableWidget):
         # Enable sorting if wanted
         if self.sortable:
             self.setSortingEnabled(True)
+
+
+class FilterGroupBox(QWidget):
+
+    def __init__(self, title, button_name, button_placement, grid, parent=None):
+        super().__init__(parent=parent)
+
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 24, 0, 0)
+        self.groupBox = QGroupBox(title, self)
+        self.groupBox.setLayout(grid)
+        self.title_button = QPushButton(button_name, parent=self)
+        self.layout.addWidget(self.groupBox)
+
+        self.title_button.move(button_placement, 24)
