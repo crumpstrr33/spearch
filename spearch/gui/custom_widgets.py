@@ -8,6 +8,18 @@ QHeaderView {
     font-size: 10pt;
 }
 '''
+ButtonGroupBoxPadding = '''
+QGroupBox {
+    border: 2px solid grey;
+    border-radius: 5px;
+    margin-top: 0.5em;
+    padding: 25 25 25 0;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 20px;
+}
+'''
 
 
 class SongArtistTableWidget(QTableWidget):
@@ -83,7 +95,7 @@ class SongArtistTableWidget(QTableWidget):
             self.setSortingEnabled(True)
 
 
-class FilterGroupBox(QWidget):
+class ButtonGroupBox(QWidget):
 
     def __init__(self, title, button_name, button_placement, grid, parent=None):
         super().__init__(parent=parent)
@@ -92,6 +104,7 @@ class FilterGroupBox(QWidget):
         self.layout.setContentsMargins(0, 24, 0, 0)
         self.groupBox = QGroupBox(title, self)
         self.groupBox.setLayout(grid)
+        self.groupBox.setStyleSheet(ButtonGroupBoxPadding)
         self.title_button = QPushButton(button_name, parent=self)
         self.layout.addWidget(self.groupBox)
 
