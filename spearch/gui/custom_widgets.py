@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QTableWidget, QAbstractItemView, QHeaderView,
-    QTableWidgetItem, QWidget, QVBoxLayout, QGroupBox, QPushButton)
+    QTableWidgetItem, QWidget, QVBoxLayout, QGroupBox, QPushButton, QCheckBox)
 from PyQt5 import QtCore
 
 SongArtistHeaderStyle = '''
@@ -8,9 +8,22 @@ QHeaderView {
     font-size: 10pt;
 }
 '''
-ButtonGroupBoxPadding = '''
+GroupBoxStyle = '''
 QGroupBox {
     border: 2px solid grey;
+    border-radius: 5px;
+    margin-top: 0.5em;
+    padding: 25 25 25 0;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 20px;
+}
+'''
+
+CheckboxGroupBoxCheckedStyle = '''
+QGroupBox {
+    border: 2px solid red;
     border-radius: 5px;
     margin-top: 0.5em;
     padding: 25 25 25 0;
@@ -97,15 +110,40 @@ class SongArtistTableWidget(QTableWidget):
 
 class ButtonGroupBox(QWidget):
 
-    def __init__(self, title, button_name, button_placement, grid, parent=None):
+    def __init__(self, title, button_name, button_placement, layout, parent=None):
         super().__init__(parent=parent)
 
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 24, 0, 0)
-        self.groupBox = QGroupBox(title, self)
-        self.groupBox.setLayout(grid)
-        self.groupBox.setStyleSheet(ButtonGroupBoxPadding)
+        self.groupbox = QGroupBox(title, self)
+        self.groupbox.setLayout(layout)
+        self.groupbox.setStyleSheet(GroupBoxStyle)
         self.title_button = QPushButton(button_name, parent=self)
-        self.layout.addWidget(self.groupBox)
+        self.layout.addWidget(self.groupbox)
 
         self.title_button.move(button_placement, 24)
+
+
+class CheckboxGroupBox(QWidget):
+
+    def __init__(self, title, cm_name, cm_placement, layout, parent=None):
+        super().__init__(parent=parent)
+
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 24, 0, 0)
+        self.groupbox = QGroupBox(title, self)
+        self.groupbox.setLayout(layout)
+        self.groupbox.setStyleSheet(GroupBoxStyle)
+        self.title_checkbox = QCheckBox(cm_name, self)
+        self.title_checkbox.setStyleSheet('background: white; padding-left: 25px;')
+        self.layout.addWidget(self.groupbox)
+
+        self.title_checkbox.move(cm_placement, 24)
+
+        self.title_checkbox.stateChanged.connect(self._toggle_border_color)
+
+    def _toggle_border_color(self):
+        if self.groupbox.styleSheet() == GroupBoxStyle:
+            self.groupbox.setStyleSheet(CheckboxGroupBoxCheckedStyle)
+        else:
+            self.groupbox.setStyleSheet(GroupBoxStyle)

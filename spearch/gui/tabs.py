@@ -1,10 +1,11 @@
 from collections import defaultdict
 
 from PyQt5.QtWidgets import (QWidget, QComboBox, QVBoxLayout, QHBoxLayout,
-    QPushButton, QGridLayout, QLineEdit, QWidgetItem, QCheckBox, QLabel)
+    QPushButton, QGridLayout, QLineEdit, QWidgetItem, QCheckBox, QLabel,
+    QGroupBox)
 from PyQt5 import QtCore
 
-from custom_widgets import SongArtistTableWidget, ButtonGroupBox
+from custom_widgets import SongArtistTableWidget, ButtonGroupBox, CheckboxGroupBox
 from popups import NewPlaylistDialog
 
 
@@ -238,24 +239,24 @@ class FilterPlaylistsUI(QWidget):
         Create another selection from playlists for filtering
         """
         # Create list for selection of playlists
-        new_pl = QComboBox(self)
-        new_pl.addItems(self.user.playlists)
-        new_pl.setContentsMargins(150, 150, 150, 150)
+        pl_choice = QComboBox()
+        pl_choice.addItems(self.user.playlists)
+        pl_choice.setContentsMargins(150, 150, 150, 150)
         # Add AND/OR logic selection
-        new_logic_add = QPushButton('Add Logic', self)
+        add_logic = QPushButton('Add Logic')
 
         # Grid made for each playlist choice
-        new_pl_grid = QGridLayout()
-        new_pl_grid.addWidget(new_pl, 0, 0)
-        new_pl_grid.addWidget(new_logic_add, 1000, 0)
+        pl_grid = QGridLayout()
+        pl_grid.addWidget(pl_choice, 0, 0)
+        pl_grid.addWidget(add_logic, 1000, 0)
         # Push everything to the top of the layout
-        new_pl_grid.setRowStretch(1001, 1)
+        pl_grid.setRowStretch(1001, 1)
 
         # Create border with the remove button for the playlist
-        pl_group_box = ButtonGroupBox('Playlist', 'Remove', 370, new_pl_grid)
+        pl_group_box = ButtonGroupBox('Playlist', 'Remove', 370, pl_grid)
 
         # Button click to add a new logic ComboBox
-        new_logic_add.clicked.connect(lambda: self.add_logic(new_pl_grid))
+        add_logic.clicked.connect(lambda: self.add_logic(pl_grid))
         # Button click to remove current playlist
         pl_group_box.title_button.clicked.connect(lambda: pl_group_box.deleteLater())
 
@@ -264,42 +265,42 @@ class FilterPlaylistsUI(QWidget):
 
     def add_logic(self, pl_layout):
         """
-        Add another selection of logic for filtering for some playlist
+        Add another selection of logic for filtering for some playlist. It
+        consists of a Groupbox titled 'Logic' containing a Groubox for AND
+        logic and another for OR logic.
         """
-        # Add AND/OR logic selection
-        new_logic = QComboBox(self)
-        new_logic.addItems(['AND', 'OR'])
-        new_logic.setMaximumWidth(0.3 * self.ADD_PLAYLIST_WIDTH)
+        # Create grid layout for the logic section
+        logic_grid = QGridLayout()
 
-        # Button to add a filter combobox
-        new_filter_add = QPushButton('Add Filter', self)
+        # Create Groupbox for the logic section
+        logic_group_box = ButtonGroupBox('Logic', 'Remove', 320, logic_grid)
 
-        # NOT choice for AND/OR logic
-        new_not_check = QCheckBox()
-        new_not_text = QLabel('Not')
-
-        # Horizontal layout for the nots
-        not_h_box = QHBoxLayout()
-        not_h_box.addWidget(new_logic)
-        not_h_box.addWidget(new_not_check)
-        not_h_box.addWidget(new_not_text)
-        not_h_box.addStretch()
-
-        # Create grid for each block of AND/OR logic
-        new_logic_grid = QGridLayout()
-        new_logic_grid.addLayout(not_h_box, new_logic_grid.count(), 0, 1, 2)  
-        new_logic_grid.addWidget(new_filter_add, 1000, 0)
-
-        # Create border with the remove button for the logic
-        logic_group_box = ButtonGroupBox('Logic', 'Remove', 320, new_logic_grid)
-
-        # Add a new filter combobox if this button is clicked
-        new_filter_add.clicked.connect(lambda: self.add_filter(new_logic_grid))
-
-        # Remove the clicked logic and all of the filter options
+        # Remove button for logic Groupbox removes it
         logic_group_box.title_button.clicked.connect(lambda: logic_group_box.deleteLater())
 
-        # Add new groupbox with layout to the parent playlist layout
+        # Create grid layout for the AND logic section
+        and_grid = QGridLayout()
+        # Create groupbox for AND section
+        and_group_box = CheckboxGroupBox('AND', 'Not', 200, and_grid)
+        # Add the groupbox to the grid layout for the entire logic section
+        logic_grid.addWidget(and_group_box, logic_grid.count(), 0)
+        # Create button to add filters, add the functionality and add to layout
+        and_add_filter = QPushButton('Add Filter')
+        and_add_filter.clicked.connect(lambda: self.add_filter(and_grid))
+        and_grid.addWidget(and_add_filter, 1000, 0)
+
+        # Create grid layout for the OR logic section
+        or_grid = QGridLayout()
+        # Create groupbox for OR section
+        or_group_box = CheckboxGroupBox('OR', 'Not', 200, or_grid)
+        # Add the groupbox to the grid layout for the entire logic section
+        logic_grid.addWidget(or_group_box, logic_grid.count(), 0)
+        # Create button to add filters, add the functionality and add to layout
+        or_add_filter = QPushButton('Add Filter')
+        or_add_filter.clicked.connect(lambda: self.add_filter(or_grid))
+        or_grid.addWidget(or_add_filter, 1000, 0)
+
+        # Add the entire groupbox to the parent layout
         pl_layout.addWidget(logic_group_box, pl_layout.count(), 0)
 
     def add_filter(self, logic_layout):
@@ -307,25 +308,25 @@ class FilterPlaylistsUI(QWidget):
         Add another selection of filtering parameters for some logic
         """
         # Filter selection
-        new_filter = QComboBox(self)
-        new_filter.addItems(['artists_and', 'artists_or', 'artist_and',
+        filter_choice = QComboBox()
+        filter_choice.addItems(['artists_and', 'artists_or', 'artist_and',
                              'artist_or', 'song_exact', 'song_and', 'song_or'])
 
         # Input for the filtering
-        new_filter_input = QLineEdit(self)
+        filter_input = QLineEdit()
 
         # Button to remove filter selection
-        new_filter_remove = QPushButton('Remove', self)
+        filter_remove = QPushButton('Remove')
 
-        new_filter_grid = QGridLayout()
-        new_filter_grid.addWidget(new_filter, new_filter_grid.count(), 0)
-        new_filter_grid.addWidget(new_filter_remove, new_filter_grid.count() - 1, 1)
-        new_filter_grid.addWidget(new_filter_input, new_filter_grid.count() - 1, 0)
+        filter_grid = QGridLayout()
+        filter_grid.addWidget(filter_choice, filter_grid.count(), 0)
+        filter_grid.addWidget(filter_remove, filter_grid.count() - 1, 1)
+        filter_grid.addWidget(filter_input, filter_grid.count() - 1, 0)
 
-        new_filter_remove.clicked.connect(lambda:
-            self.remove_widgets(new_filter, new_filter_remove, new_filter_input))
+        filter_remove.clicked.connect(lambda:
+            self.remove_widgets(filter_choice, filter_remove, filter_input))
 
-        logic_layout.addLayout(new_filter_grid, logic_layout.count(), 0)
+        logic_layout.addLayout(filter_grid, logic_layout.count(), 0)
 
     def remove_widgets(self, *widgets):
         """
