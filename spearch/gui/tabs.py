@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QWidget, QComboBox, QVBoxLayout, QHBoxLayout,
     QGroupBox)
 from PyQt5 import QtCore
 
-from custom_widgets import SongArtistTableWidget, ButtonGroupBox, CheckboxGroupBox
+from custom_widgets import SongArtistTableWidget, WidgetGroupBox
 from popups import NewPlaylistDialog
 
 
@@ -253,12 +253,12 @@ class FilterPlaylistsUI(QWidget):
         pl_grid.setRowStretch(1001, 1)
 
         # Create border with the remove button for the playlist
-        pl_group_box = ButtonGroupBox('Playlist', 'Remove', 370, pl_grid)
+        pl_group_box = WidgetGroupBox('Playlist', 'QPushButton', 'Remove', 370, pl_grid)
 
         # Button click to add a new logic ComboBox
         add_logic.clicked.connect(lambda: self.add_logic(pl_grid))
         # Button click to remove current playlist
-        pl_group_box.title_button.clicked.connect(lambda: pl_group_box.deleteLater())
+        pl_group_box.title_widget.clicked.connect(lambda: pl_group_box.deleteLater())
 
         # Add to total layout
         self.filt_layout.addWidget(pl_group_box, self.filt_layout.count(), 0)
@@ -273,15 +273,15 @@ class FilterPlaylistsUI(QWidget):
         logic_grid = QGridLayout()
 
         # Create Groupbox for the logic section
-        logic_group_box = ButtonGroupBox('Logic', 'Remove', 320, logic_grid)
+        logic_group_box = WidgetGroupBox('Logic', 'QPushButton', 'Remove', 320, logic_grid)
 
         # Remove button for logic Groupbox removes it
-        logic_group_box.title_button.clicked.connect(lambda: logic_group_box.deleteLater())
+        logic_group_box.title_widget.clicked.connect(lambda: logic_group_box.deleteLater())
 
         # Create grid layout for the AND logic section
         and_grid = QGridLayout()
         # Create groupbox for AND section
-        and_group_box = CheckboxGroupBox('AND', 'Not', 200, and_grid)
+        and_group_box = WidgetGroupBox('AND', 'QCheckBox', 'Not', 200, and_grid)
         # Add the groupbox to the grid layout for the entire logic section
         logic_grid.addWidget(and_group_box, logic_grid.count(), 0)
         # Create button to add filters, add the functionality and add to layout
@@ -292,7 +292,7 @@ class FilterPlaylistsUI(QWidget):
         # Create grid layout for the OR logic section
         or_grid = QGridLayout()
         # Create groupbox for OR section
-        or_group_box = CheckboxGroupBox('OR', 'Not', 200, or_grid)
+        or_group_box = WidgetGroupBox('OR', 'QCheckBox', 'Not', 200, or_grid)
         # Add the groupbox to the grid layout for the entire logic section
         logic_grid.addWidget(or_group_box, logic_grid.count(), 0)
         # Create button to add filters, add the functionality and add to layout
