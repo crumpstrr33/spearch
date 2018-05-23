@@ -117,24 +117,30 @@ class FilterPlaylistsUI(QWidget):
         (i.e. two ANDs for a single playlist or artist_or's), then they are
         combined/concatenated
         """
-        # Get the data in a dict
-        filt_dict, _ = self._parse_filt_layout()
-        # Clean the data up to pass to self.user.filter_playlist
-        filt_dict = self.sanitize_data(filt_dict)
+        # Parse the layouts for the data and put into a dict
+        filt_dict = self._parse_filt_layout()
+        from pprint import pprint
+
+        # Remove the empty logics, the ones without any filtering keywords
+        for playlist, data in filt_dict.items():
+            for logic in ['_and', '_or']:
+                if len(data[logic]) == 1:
+                    filt_dict[playlist].pop(logic)
 
         filt_songs = []
-        # For each playlist, get the filtered song list
-        for pl, pl_data in filt_dict.items():
+        # Run through each playlist and filter them
+        for playlist, data in filt_dict.items():
             songs = self.user.get_playlist_songs(
-                self.user.pl_ids[self.user.playlists.index(pl)])
-            filt_songs += self.user.filter_playlist(songs, _or=pl_data)
+                self.user.pl_ids[self.user.playlists.index(playlist)])
+            filt_songs += self.user.filter_playlist(songs, _or=data)
 
+        # Add songs to the table
         self.songs_table.add_songs(filt_songs)
 
-    def _parse_filt_layout(self, layout=None, depth=0, filt_dict=None, d_ind=0,
-                          latest_pl=None, latest_logic=None, latest_filt=None):
+    def _parse_filt_layout(self, layout=None, depth=0, filt_dict=None, pl=None,
+                           logic=None):
         """
-        Recursively queries the data from this tab to filt the playlist(s)
+        Recursively queries the data from this tab to filter the playlist(s)
         selected. The arguments are used for the recursive-ness.
 
         This works since each important part of the layout is a separate and
@@ -143,8 +149,7 @@ class FilterPlaylistsUI(QWidget):
         Playlist just means the name of the playlist. Logic is whether it's
         an AND or an OR. And filter is the filter choice of which there are
         seven described under User.filter_playlist. These are stored in a
-        recursive dictionary where each key has a unique ID attached to the
-        end (d_ind) so that duplicates can be used.
+        dictionary passed along which is returned at the end.
 
         Parameters:
         layout - (default None) The layout to parse as described above
@@ -152,87 +157,56 @@ class FilterPlaylistsUI(QWidget):
                 called which allows us to know what Combobox has been reached
         filt_dict - (default None) The main dictionary that stores all of the
                     parsed data
-        d_ind - (default 0) The number of total entries to filt_dict, this
-                includes child dicts which maintains unique key names
-        latest_pl - (default None) The last playlist name used so that it can
+        pl - (default None) The last playlist name used so that it can
                     be called in the dictionary for adding data
-        latest_logic - (default None) The last type of logic used like latest_pl
-        latest_filt - (default None) The last filter type used like latest_pl
+        logic - (default None) The last type of logic used like latest_pl
         """
-        # The layout that is being parsed
+        # Get the current layout and dictionary or new ones if first pass
         layout = layout or self.filt_layout
-        # The dictionary that all the data is being added to
         filt_dict = filt_dict or {}
 
-        # Run through each item of the layout
+        # Iterate through the widgets/layouts of the current layout
         for ind in range(layout.count()):
             item = layout.itemAt(ind)
-            # If it's a widget...
+
+            # If the item is a widget...
             if isinstance(item, QWidgetItem):
-                # and a Combobox...
-                if isinstance(item.widget(), QComboBox):
-                    item_key = item.widget().currentText() + '&&' + str(d_ind)
-                    d_ind += 1
-                    # A recursive depth of 1 is the playlist name
+                widget = item.widget()
+
+                # And if it's a custom groupbox...
+                if isinstance(widget, WidgetGroupBox):
+                    # Get whether it's an AND or OR if there
+                    if widget.widget_type == 'QCheckBox':
+                        logic = '_or' if widget.groupbox.title() == 'OR' else '_and'
+                        # Add the choice for 'NOT-ing' the logic
+                        filt_dict[pl][logic]['_not'] = widget.title_widget.isChecked()
+
+                    # Recursively run function with the current data 
+                    filt_dict = self._parse_filt_layout(widget.groupbox.layout(),
+                        depth=depth + 1, filt_dict=filt_dict, pl=pl, logic=logic)
+                # And if it's a combobox...
+                elif isinstance(widget, QComboBox):
+                    # Depth 1 is the playlist name, so add that to the dict
                     if depth == 1:
-                        filt_dict[item_key] = {}
-                        latest_pl = item_key
-                    # A recursive depth of 2 is the logic name
-                    if depth == 2:
-                        filt_dict[latest_pl][item_key] = {}
-                        latest_logic = item_key
-                    # A recursive depth of 3 is the filter type
-                    if depth == 3:
-                        filt_dict[latest_pl][latest_logic][item_key] = ''
-                        latest_filt = item_key
-                # and a LineEdit
-                elif isinstance(item.widget(), QLineEdit):
-                    # Add comma separated keywords for the filter
-                    filt_kw = list(map(lambda x: x.strip(),
-                        item.widget().displayText().split(',')))
-                    filt_dict[latest_pl][latest_logic][latest_filt] = filt_kw
-                # and Checkbox for whether NOT is chosen or not
-                elif isinstance(item.widget(), QCheckBox):
-                    filt_dict[latest_pl][latest_logic]['NOT'] = item.widget().isChecked()
-            # or if it's a GridLayout
+                        filt_dict[widget.currentText()] = {'_and': {}, '_or': {}}
+                        # Store current playlist name being filled in
+                        pl = widget.currentText()
+                    # Depth 4 has the filter type, so add that
+                    elif depth == 4:
+                        filt_dict[pl][logic][widget.currentText()] = ''
+                        # Store current filter type
+                        filt = widget.currentText()
+                # And if it's a lineedit...
+                elif isinstance(widget, QLineEdit):
+                    # Comma-separate text into a list for filter choice
+                    filt_dict[pl][logic][filt] = list(map(lambda x: x.strip(), widget.displayText().split(',')))
+            # Or if the item is a layout...
             elif isinstance(item, QGridLayout):
-                # Recursively run the method with the child layout and current
-                # data
-                filt_dict, d_ind = self._parse_filt_layout(layout=item,
-                        depth=depth + 1, filt_dict=filt_dict, d_ind=d_ind,
-                        latest_pl=latest_pl, latest_logic=latest_logic,
-                        latest_filt=latest_filt)
+                # Run recursively with current data
+                filt_dict = self._parse_filt_layout(item, depth=depth + 1,
+                    filt_dict=filt_dict, pl=pl, logic=logic)
 
-        # Return current data that has been parsed
-        return filt_dict, d_ind
-
-    @staticmethod
-    def sanitize_data(filt_dict):
-        """
-        Cleans up the dictionary returned by self._parse_filt_layout
-        """
-        clean_dict = defaultdict(list)
-        # Each key of dictionary is a playlist name
-        for pl, pl_data in filt_dict.items():
-            clean_pl = pl.split('&&')[0]
-            # Each playlist has a main AND or OR logic
-            clean_dict[clean_pl] = {'_and': [], '_or': []}
-            # Look at each logic chosen
-            for logic, logic_data in pl_data.items():
-                clean_logic = '_and' if logic.startswith('AND') else '_or'
-                # Init the logic dict for the filter
-                clean_dict[clean_pl][clean_logic].append({})
-                for filt, filt_data in logic_data.items():
-                    # Add NOT to dict
-                    if filt == 'NOT':
-                        clean_dict[clean_pl][clean_logic][-1]['_not'] = filt_data
-                        continue
-
-                    clean_filt = filt.split('&&')[0]
-                    # For each AND, append dict to the AND list and same for OR
-                    clean_dict[clean_pl][clean_logic][-1][clean_filt] = filt_data
-
-        return clean_dict
+        return filt_dict
 
     def add_playlist(self):
         """

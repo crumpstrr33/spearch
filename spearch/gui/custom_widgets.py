@@ -98,6 +98,7 @@ class WidgetGroupBox(QWidget):
         parent - (default None) The parent of the WidgetGroupBox
         """
         super().__init__(parent=parent)
+        self.widget_type = widget_type
 
         # Create outter layout (to contain the QGroupBox)
         self.layout = QVBoxLayout(self)
