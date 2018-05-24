@@ -115,7 +115,6 @@ class FilterPlaylistsUI(QWidget):
         """
         # Parse the layouts for the data and put into a dict
         filt_dict = self._parse_filt_layout()
-        from pprint import pprint
 
         # Remove the empty logics, the ones without any filtering keywords
         for playlist, data in filt_dict.items():
