@@ -1,7 +1,6 @@
 from datetime import datetime as dt
 from time import sleep
 from configparser import ConfigParser
-import os
 
 from selenium import webdriver
 import requests

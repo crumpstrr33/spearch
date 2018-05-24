@@ -30,7 +30,6 @@ class Login(QDialog):
         self.button = QPushButton('Login', self)
         self.button.clicked.connect(self.accept)
         self.input = QLineEdit()
-        self.input.setText('chester_mccrumpet')
 
         # Design the GUI
         h_box = QHBoxLayout()

@@ -5,7 +5,6 @@ cur_dir = path.dirname(path.abspath(getsourcefile(lambda: 0)))
 sys.path.insert(0, cur_dir[:cur_dir.rfind(path.sep)])
 
 from functools import partial
-from time import sleep
 
 from PyQt5.QtWidgets import (QMainWindow, QAction, QWidget, QVBoxLayout,
     QTabWidget, QTableWidgetItem, qApp, QDialog, QMenu)

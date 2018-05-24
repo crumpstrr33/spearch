@@ -309,9 +309,9 @@ class User:
         self.pl_lens.append(0)
 
         # Add the songs to the playlist
-        self.add_to_playlist(pl_id, songs)
+        self._add_to_playlist(pl_id, songs)
 
-    def add_to_playlist(self, pl_id, songs):
+    def _add_to_playlist(self, pl_id, songs):
         """
         Adds songs to a playlist and updates the info on the user's playlists.
         This will add duplicates.

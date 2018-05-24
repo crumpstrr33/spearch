@@ -1,9 +1,5 @@
-from collections import defaultdict
-
 from PyQt5.QtWidgets import (QWidget, QComboBox, QVBoxLayout, QHBoxLayout,
-    QPushButton, QGridLayout, QLineEdit, QWidgetItem, QCheckBox, QLabel,
-    QGroupBox)
-from PyQt5 import QtCore
+    QPushButton, QGridLayout, QLineEdit, QWidgetItem, QCheckBox)
 
 from custom_widgets import SongArtistTableWidget, WidgetGroupBox
 from popups import NewPlaylistDialog
