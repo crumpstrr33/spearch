@@ -5,7 +5,7 @@ from PyQt5 import QtCore
 from style import *
 
 
-class SongArtistTableWidget(QTableWidget):
+class SongDataTableWidget(QTableWidget):
 
     def __init__(self, parent, select_songs=True, select_artists=True,
                  sortable=True):

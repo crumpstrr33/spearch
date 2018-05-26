@@ -11,8 +11,8 @@ from PyQt5.QtWidgets import (QMainWindow, QAction, QWidget, QVBoxLayout,
 from PyQt5.QtGui import QFont
 from PyQt5 import QtCore
 
-from tabs import (PlaylistSongsUI, FilterPlaylistsUI, QueueMakerUI,
-    CurrentQueueUI) 
+from tabs import (PlaylistSongsUI, AdvFilterPlaylistsUI, QueueMakerUI,
+    CurrentQueueUI, SimpleFilterPlaylistUI) 
 from popups import Login
 from user import User
 sys.path.pop(0)
@@ -22,6 +22,7 @@ class Window(QMainWindow):
     NEW_USER_EXIT_CODE = 322
     BOLD_FONT = QFont()
     BOLD_FONT.setBold(True)
+    NORMAL_FONT = QFont()
 
     def __init__(self, client, max_height, max_width):
         """
@@ -81,9 +82,53 @@ class Window(QMainWindow):
         check_avail.setStatusTip('Check for new available devices')
         check_avail.triggered.connect(self._reset_avail_devices)
 
+        # Change from simple to advanced mode for Filter Playlist tab
+        toggle_filter = QMenu('Toggle Filter Playlists tab', self)
+        toggle_filter.setStatusTip('Toggle between simple and advanced mode' +
+                                   ' for the Filter Playlists tab')
+        # The two options in the submenu
+        self.simple_filter = QAction('Simple', self)
+        self.simple_filter.setFont(self.BOLD_FONT)
+        self.advanced_filter = QAction('Advanced', self)
+        # Do the changing when clicked
+        self.simple_filter.triggered.connect(partial(
+            self._toggle_filter, 'simple'))
+        self.advanced_filter.triggered.connect(partial(
+            self._toggle_filter, 'advanced'))
+        toggle_filter.addAction(self.simple_filter)
+        toggle_filter.addAction(self.advanced_filter)
+
         # Add to Edit
         edit_menu.addMenu(self.avail)
         edit_menu.addAction(check_avail)
+        edit_menu.addSeparator()
+        edit_menu.addMenu(toggle_filter)
+
+    def _toggle_filter(self, ui_to_toggle):
+        """
+        Toggle between the advanced and simple version for filtering playlists
+
+        Parameters:
+        ui_to_toggle - Either 'simple' or 'advanced'. 'simple' will bold 
+                       'Simple' in the menu and change the second tab to the
+                       simplified version and vis versa
+        """
+        if ui_to_toggle == 'simple':
+            # Toggle the bold fonts
+            self.simple_filter.setFont(self.BOLD_FONT)
+            self.advanced_filter.setFont(self.NORMAL_FONT)
+            # Remove old tab and insert new one
+            self.tabs.tabs.removeTab(1)
+            self.tabs.tabs.insertTab(1, self.tabs.simp_filt_tab, 'Filter Playlists')
+        elif ui_to_toggle == 'advanced':
+            # Toggle the bold fonts
+            self.simple_filter.setFont(self.NORMAL_FONT)     
+            self.advanced_filter.setFont(self.BOLD_FONT)
+            # Remove old tab and insert new one
+            self.tabs.tabs.removeTab(1)
+            self.tabs.tabs.insertTab(1, self.tabs.adv_filt_tab, 'Filter Playlists')
+        # Set back to current tab (otherwise moves to next tab)
+        self.tabs.tabs.setCurrentIndex(1)
 
     def _reset_avail_devices(self, device_id=None):
         """
@@ -153,13 +198,14 @@ class Tabs(QWidget):
         self.tabs = QTabWidget()
 
         self.pl_tab = PlaylistSongsUI(self, user)
-        self.filt_tab = FilterPlaylistsUI(self, user, max_height, max_width)
+        self.simp_filt_tab = SimpleFilterPlaylistUI(self, user, max_height, max_width)
+        self.adv_filt_tab = AdvFilterPlaylistsUI(self, user, max_height, max_width)
         self.createq_tab = QueueMakerUI(self, user)
         self.curq_tab = CurrentQueueUI(self, user)
 
         # Add tabs
         self.tabs.addTab(self.pl_tab, 'Playlist Songs')
-        self.tabs.addTab(self.filt_tab, 'Filter Playlists')
+        self.tabs.addTab(self.simp_filt_tab, 'Filter Playlists')
         self.tabs.addTab(self.createq_tab, 'Queue Maker')
         self.tabs.addTab(self.curq_tab, 'Current Queue')
 
@@ -170,8 +216,10 @@ class Tabs(QWidget):
         # Add currently selected songs in playlist songs tab to queue
         self.pl_tab.add_songs_button.clicked.connect(lambda:
             self._add_to_queue(self.pl_tab.songs_table, True))
-        self.filt_tab.add_songs_button.clicked.connect(lambda:
-            self._add_to_queue(self.filt_tab.songs_table, False))
+        self.simp_filt_tab.add_songs_button.clicked.connect(lambda:
+            self._add_to_queue(self.simp_filt_tab.songs_table, False))
+        self.adv_filt_tab.add_songs_button.clicked.connect(lambda:
+            self._add_to_queue(self.adv_filt_tab.songs_table, False))
 
         # Create queue with currently shown songs
         self.createq_tab.create_songs.clicked.connect(self._create_queue)

@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import (QWidget, QComboBox, QVBoxLayout, QHBoxLayout,
-    QPushButton, QGridLayout, QLineEdit, QWidgetItem, QCheckBox)
+    QPushButton, QGridLayout, QLineEdit, QWidgetItem, QCheckBox, QTableWidget,
+    QHeaderView, QLabel, QTableWidgetItem)
 
-from custom_widgets import SongArtistTableWidget, WidgetGroupBox
+from custom_widgets import SongDataTableWidget, WidgetGroupBox
 from popups import NewPlaylistDialog
 
 
@@ -24,7 +25,7 @@ class PlaylistSongsUI(QWidget):
 
     def init_ui(self):
         # Create song list
-        self.songs_table = SongArtistTableWidget(self, select_artists=False)
+        self.songs_table = SongDataTableWidget(self, select_artists=False)
 
         # Create list for selection of playlists
         self.playlists = QComboBox(self)
@@ -57,7 +58,7 @@ class PlaylistSongsUI(QWidget):
         self.songs_table.add_songs(songs)
 
 
-class FilterPlaylistsUI(QWidget):
+class AdvFilterPlaylistsUI(QWidget):
     ADD_PLAYLIST_WIDTH = 500
 
     def __init__(self, parent, user, max_height, max_width):
@@ -87,7 +88,7 @@ class FilterPlaylistsUI(QWidget):
         self.add_songs_button = QPushButton('Add', self)
         self.add_songs_button.setMaximumWidth(self.max_width / 4)
         # Table to show filtered songs
-        self.songs_table = SongArtistTableWidget(self, False, False, False)
+        self.songs_table = SongDataTableWidget(self, False, False, False)
         self.songs_table.setMaximumWidth(self.max_width - self.ADD_PLAYLIST_WIDTH)
 
         # Total layout for playlist filters
@@ -305,6 +306,134 @@ class FilterPlaylistsUI(QWidget):
             widget.deleteLater()
 
 
+class SimpleFilterPlaylistUI(QWidget):
+    ADD_PLAYLIST_WIDTH = 500
+
+    def __init__(self, parent, user, max_height, max_width):
+        super().__init__(parent)
+        self.max_height = max_height
+        self.max_width = max_width
+
+        # Set of artists currently in artist list
+        self.artists_set = set()
+        # Bool used to not add artist when index change of artist Combobox is
+        # cause by the change in the playlist Combobox
+        self.do_not_add_artist = True
+
+        self.user = user
+        self.init_ui()
+
+        self.commit.clicked.connect(self.add_artists_songs)
+
+    def init_ui(self):
+        # Table of artists to include/exclude
+        self.artists_table = QTableWidget(0, 1, self)
+        self.artists_table.setHorizontalHeaderLabels(['Artists'])
+        header = self.artists_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+
+        # Combobox of the unique artists in the playlists Combobox
+        self.artists = QComboBox()
+        self.artists.setFixedWidth(self.ADD_PLAYLIST_WIDTH)
+        # Add artist selected to table self.artists_table
+        self.artists.currentIndexChanged.connect(self.add_artists)
+
+        # Playlists Combobox like in PlaylistSongsUI
+        self.playlists = QComboBox()
+        self.playlists.addItems(self.user.playlists)
+        self.playlists.setFixedWidth(self.ADD_PLAYLIST_WIDTH)
+        # Get the artists of this playlist
+        self.playlists.currentIndexChanged.connect(
+            lambda: self.get_unique_artists(
+                self.user.pl_ids[self.playlists.currentIndex()]))
+
+        # Initialize for self.artists
+        self.get_unique_artists(self.user.pl_ids[self.playlists.currentIndex()])
+        # Combobox choice for including or excluding
+        self.logic = QComboBox()
+        self.logic.addItems(['Include', 'Exclude'])
+        self.logic_text = QLabel('the following artists:')
+        # Button to show what songs are return by total filter
+        self.commit = QPushButton('Commit', self)
+        self.commit.setMaximumWidth(self.max_width / 4)
+        # Create button to add songs to queue
+        self.add_songs_button = QPushButton('Add', self)
+        self.add_songs_button.setMaximumWidth(self.max_width / 4)
+        # Table to show filtered songs
+        self.songs_table = SongDataTableWidget(self, False, False, False)
+        self.songs_table.setMaximumWidth(self.max_width - self.ADD_PLAYLIST_WIDTH)
+
+        # Total layout for left side
+        h_box_logic = QHBoxLayout()
+        h_box_logic.addWidget(self.logic)
+        h_box_logic.addWidget(self.logic_text)
+        h_box_logic.addStretch()
+        self.filt_layout = QGridLayout()
+        self.filt_layout.addWidget(self.playlists, 0, 1)
+        self.filt_layout.addWidget(self.artists, 1, 1)
+        self.filt_layout.addLayout(h_box_logic, 2, 1)
+        self.filt_layout.addWidget(self.artists_table, 3, 1)
+
+        # Total layout for right side
+        h_box_buttons = QHBoxLayout()
+        h_box_buttons.addWidget(self.add_songs_button)
+        h_box_buttons.addWidget(self.commit)
+        v_box_right = QVBoxLayout()
+        v_box_right.addLayout(h_box_buttons)
+        v_box_right.addWidget(self.songs_table)
+
+        # Put it all together
+        h_box = QHBoxLayout(self)
+        h_box.addLayout(self.filt_layout)
+        h_box.addLayout(v_box_right)
+
+    def get_unique_artists(self, pl_id):
+        # The change in playlist causes a change in the artist which triggers
+        # adding the artist to the table, so prevent the first time
+        self.do_not_add_artist = True
+
+        # Add the unique artists to Combobox
+        unique_artists = set()
+        self.songs = self.user.get_playlist_songs(pl_id)
+        for song in self.songs:
+            for artist in song[1]:
+                unique_artists.add(artist)
+
+        # Clear Combobox and add new artists alphabetically
+        self.artists.clear()
+        # Reset bool since clearing Combobox changes current index :/
+        self.do_not_add_artist = True
+        self.artists.addItems(sorted(list(unique_artists)))
+
+        # Reset artists table by deleting ever row
+        for _ in range(self.artists_table.rowCount()):
+            self.artists_table.removeRow(0)
+        # Reset list of artists
+        self.artists_set = set()
+
+    def add_artists(self):
+        # Doesn't add if cause by change in playlist
+        if not self.do_not_add_artist:
+            artist = self.artists.currentText()
+            cur_row = self.artists_table.rowCount()
+            # Don't add if already in list
+            if artist not in self.artists_set:
+                self.artists_table.insertRow(cur_row)
+                self.artists_table.setItem(cur_row, 0, QTableWidgetItem(artist))
+                # Add artist to list of currents artists
+                self.artists_set.add(artist)
+
+        self.do_not_add_artist = False
+
+    def add_artists_songs(self):
+        songs_to_add = []
+        for song in self.songs:
+            for artist in song[1]:
+                if artist in self.artists_set:
+                    songs_to_add.append(song)
+        self.songs_table.add_songs(songs_to_add)
+
+
 class QueueMakerUI(QWidget):
 
     def __init__(self, parent, user):
@@ -334,7 +463,7 @@ class QueueMakerUI(QWidget):
         self.create_playlist = QPushButton('Make Playlist', self)
 
         # List of songs and their artists
-        self.queue_list = SongArtistTableWidget(self)
+        self.queue_list = SongDataTableWidget(self)
 
         # Put it all together
         v_box = QVBoxLayout()
@@ -380,7 +509,7 @@ class CurrentQueueUI(QWidget):
 
     def init_ui(self):
         # List of songs and their artists
-        self.current_queue = SongArtistTableWidget(self)
+        self.current_queue = SongDataTableWidget(self)
 
         v_box = QVBoxLayout(self)
         v_box.addWidget(self.current_queue)
