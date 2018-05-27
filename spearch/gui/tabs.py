@@ -388,6 +388,10 @@ class SimpleFilterPlaylistUI(QWidget):
         h_box.addLayout(v_box_right)
 
     def get_unique_artists(self, pl_id):
+        """
+        Gets every different artist for the playlist currently selected in the
+        self.playlists Combobox
+        """
         # The change in playlist causes a change in the artist which triggers
         # adding the artist to the table, so prevent the first time
         self.do_not_add_artist = True
@@ -412,6 +416,10 @@ class SimpleFilterPlaylistUI(QWidget):
         self.artists_set = set()
 
     def add_artists(self):
+        """
+        Adds the selected artist from the self.artists Combobox and adds it
+        to the self.artists_table table widget.
+        """
         # Doesn't add if cause by change in playlist
         if not self.do_not_add_artist:
             artist = self.artists.currentText()
@@ -426,10 +434,19 @@ class SimpleFilterPlaylistUI(QWidget):
         self.do_not_add_artist = False
 
     def add_artists_songs(self):
+        """
+        Adds all the songs by every artist in the self.artists_table table
+        widget if the self.logic Combobox is 'Include' or adds all the songs
+        not by the artists in the table widget if self.logic is 'Exclude'.
+        """
+        logic = self.logic.currentText()
         songs_to_add = []
+        # Run through every song in the current playlist selected
         for song in self.songs:
+            # Since some songs have multiple artists
             for artist in song[1]:
-                if artist in self.artists_set:
+                if (artist in self.artists_set and  logic == 'Include') or \
+                   (artist not in self.artists_set and logic == 'Exclude'):
                     songs_to_add.append(song)
         self.songs_table.add_songs(songs_to_add)
 
