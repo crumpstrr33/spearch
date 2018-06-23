@@ -3,6 +3,10 @@ from time import sleep
 from configparser import ConfigParser
 
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.common.exceptions import TimeoutException
+
 import requests
 
 
@@ -90,21 +94,27 @@ class Client:
         browser.get(auth_url)
 
         # Wait until login button is pressed
-        while browser.current_url.startswith(self.ROOT_URL + '/en/authorize?'):
-            sleep(0.1)
+        try:
+            WebDriverWait(browser, 600).until(ec.url_contains('en/login?'))
+        except TimeoutException:
+            browser.close()
+            raise TimeoutException('Login has timed out.')
 
         # Automatically fill the username input field
         login_username = browser.find_element_by_id('login-username')
         login_username.send_keys(self.user)
 
-        # Wait until the login is attempted
-        while browser.current_url.startswith(self.ROOT_URL):
-            sleep(0.1)
-
-        # When it does, strip the code and close the browser
-        code = browser.current_url.split('?')[1].split('=')[1]
-        browser.close()
-        return code
+        try:
+            # Wait until sign in to get the code from the URL
+            WebDriverWait(browser, 600).until(ec.url_contains('?code='))
+            # When it does, strip the code and close the browser
+            code = browser.current_url.split('?')[1].split('=')[1]
+            browser.close()
+            return code
+        except TimeoutException:
+            # Close broswer and error for inactivity
+            browser.close()
+            raise TimeoutException('Login has timed out.')
 
     def _request_token(self, secret=False):
         """
