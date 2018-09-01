@@ -15,6 +15,7 @@ from tabs import (PlaylistSongsUI, AdvFilterPlaylistsUI, QueueMakerUI,
     CurrentQueueUI, SimpleFilterPlaylistUI) 
 from popups import Login
 from user import User
+from style import TabStyle, BG_COLOR
 sys.path.pop(0)
 
 
@@ -45,6 +46,8 @@ class Window(QMainWindow):
 
         self.tabs = Tabs(self, self.user, max_height, max_width)
         self.setCentralWidget(self.tabs)
+
+        self.setStyleSheet('QMainWindow {{background-color: {}}}'.format(BG_COLOR))
 
     def init_menu(self):
         # Init menu
@@ -88,6 +91,7 @@ class Window(QMainWindow):
                                    ' for the Filter Playlists tab')
         # The two options in the submenu
         self.simple_filter = QAction('Simple', self)
+        # Start with simple filter selected
         self.simple_filter.setFont(self.BOLD_FONT)
         self.advanced_filter = QAction('Advanced', self)
         # Do the changing when clicked
@@ -197,11 +201,11 @@ class Tabs(QWidget):
         # Initialize tab screen
         self.tabs = QTabWidget()
 
-        self.pl_tab = PlaylistSongsUI(self, user)
-        self.simp_filt_tab = SimpleFilterPlaylistUI(self, user, max_height, max_width)
-        self.adv_filt_tab = AdvFilterPlaylistsUI(self, user, max_height, max_width)
-        self.createq_tab = QueueMakerUI(self, user)
-        self.curq_tab = CurrentQueueUI(self, user)
+        self.pl_tab = PlaylistSongsUI(None, user)
+        self.simp_filt_tab = SimpleFilterPlaylistUI(None, user, max_height, max_width)
+        self.adv_filt_tab = AdvFilterPlaylistsUI(None, user, max_height, max_width)
+        self.createq_tab = QueueMakerUI(None, user)
+        self.curq_tab = CurrentQueueUI(None, user)
 
         # Add tabs
         self.tabs.addTab(self.pl_tab, 'Playlist Songs')
@@ -223,6 +227,8 @@ class Tabs(QWidget):
 
         # Create queue with currently shown songs
         self.createq_tab.create_songs.clicked.connect(self._create_queue)
+
+        self.tabs.setStyleSheet(TabStyle)
 
     def _add_to_queue(self, songs_table, selected):
         """

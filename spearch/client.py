@@ -81,9 +81,7 @@ class Client:
         """
         Gets a string called 'code' that appears in the URL after logging in
         and being redirected to REDIRECT_URI. So this gets that code and closes
-        the browser. At the moment, ONLY WORKS WITH FIREFOX. Also, could prob
-        do the waiting parts better than while sleep loops, but this works for
-        now so I'm gonna keep it.
+        the browser. At the moment, ONLY WORKS WITH FIREFOX.
         """
         auth_url = self._request_auth_url()
 
@@ -93,10 +91,11 @@ class Client:
         # Load authentication URL
         browser.get(auth_url)
 
-        # Wait until login button is pressed
+        # Wait until login button is pressed or timeout after 10 minutes
         try:
             WebDriverWait(browser, 600).until(ec.url_contains('en/login?'))
         except TimeoutException:
+            # Close browser and error for inactivity
             browser.close()
             raise TimeoutException('Login has timed out.')
 
@@ -104,8 +103,8 @@ class Client:
         login_username = browser.find_element_by_id('login-username')
         login_username.send_keys(self.user)
 
+        # Wait until sign in to get code from URL or timeout after 10 minutes
         try:
-            # Wait until sign in to get the code from the URL
             WebDriverWait(browser, 600).until(ec.url_contains('?code='))
             # When it does, strip the code and close the browser
             code = browser.current_url.split('?')[1].split('=')[1]

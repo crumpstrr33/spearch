@@ -24,8 +24,11 @@ def main():
         if init:
             login = Login()
             login.exec_()
-
-            client = login.client
+            # If quit out of login window, then end loop
+            try:
+                client = login.client
+            except:
+                break
 
         screen_size = QDesktopWidget().screenGeometry()
         window = Window(client, screen_size.height(), screen_size.width())

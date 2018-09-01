@@ -2,13 +2,26 @@ from PyQt5.QtWidgets import (QTableWidget, QAbstractItemView, QHeaderView,
     QTableWidgetItem, QWidget, QVBoxLayout, QGroupBox, QPushButton, QCheckBox)
 from PyQt5 import QtCore
 
-from style import *
+from style import BG_COLOR
 
 
 class SongDataTableWidget(QTableWidget):
 
-    def __init__(self, parent, select_songs=True, select_artists=True,
-                 sortable=True):
+    def __init__(self, select_songs=True, select_artists=True,
+                 sortable=True, parent=None):
+        """
+        A customized version of the QTableWidget. It is used for listing and
+        displaying song data.
+
+        Parameters:
+        selected_songs - (default True) Each row (i.e. each song) will be 
+                         selectable if True and not if False.
+        selected_artists - (default True) Same as with selected_songs but this
+                           is speific to the Artists row.
+        sortable - (default True) Able to be sorted by clicking on a column
+                   header if True and not if False.
+        parent - (default None) Parent this widget.
+        """
         super().__init__(0, 3, parent)
 
         # Customization
@@ -27,10 +40,12 @@ class SongDataTableWidget(QTableWidget):
 
         # Style the table
         header = self.horizontalHeader()
-        header.setStyleSheet(SongArtistHeaderStyle)
         # Make each column take up half of the total table width
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
+
+        # Remove the indexing on the side
+        self.verticalHeader().setVisible(False)
 
     def add_songs(self, songs):
         """
@@ -94,8 +109,8 @@ class WidgetGroupBox(QWidget):
         widget_placement - Where on the top border of the QGroupBox should the
                            widget appear, the higher the number, the further to
                            the right it is
-        layout - The layout that the QGroupbox will be for
-        parent - (default None) The parent of the WidgetGroupBox
+        layout - The layout that the QGroupbox will be for.
+        parent - (default None) The parent of this widget.
         """
         super().__init__(parent=parent)
         self.widget_type = widget_type
@@ -103,17 +118,16 @@ class WidgetGroupBox(QWidget):
         # Create outter layout (to contain the QGroupBox)
         self.layout = QVBoxLayout(self)
         # Pad the top to give room for the widget
-        self.layout.setContentsMargins(0, 24, 0, 0)
-        # Create the QGroupBox and set it's layout and style
+        self.layout.setContentsMargins(0, 20, 0, 0)
+        # Create the QGroupBox and set it's layout
         self.groupbox = QGroupBox(title, self)
         self.groupbox.setLayout(layout)
-        self.groupbox.setStyleSheet(GroupBoxStyle)
         # Create the desired widget and add to layout
         self.title_widget = self._get_widget(widget_type, widget_name)
         self.layout.addWidget(self.groupbox)
 
         # Shift the widget down to align with the title
-        self.title_widget.move(widget_placement, 24)
+        self.title_widget.move(widget_placement, 15)
 
     def _get_widget(self, widget_type, widget_name):
         """
@@ -122,19 +136,21 @@ class WidgetGroupBox(QWidget):
         """
         if widget_type == 'QPushButton':
             widget = QPushButton(widget_name, parent=self)
+            # Make the button smaller with all this
+            widget.setStyleSheet('''
+                font-size: 10px;
+            ''')
+            widget.setMaximumHeight(22)
+            width = widget.fontMetrics().boundingRect(widget_name).width()
+            widget.setFixedWidth(1.2 * width)
         elif widget_type == 'QCheckBox':
             widget = QCheckBox(widget_name, parent=self)
             # Centers the checkbox in the whitespace
-            widget.setStyleSheet('background: white; padding-left: 25px;')
-            widget.stateChanged.connect(self._toggle_border_color)
+            widget.setStyleSheet('''
+                margin-bottom: 10px;
+                background: {};
+                padding-left: 6px;
+            '''.format(BG_COLOR))
+            widget.setMaximumWidth(46)
 
         return widget
-
-    def _toggle_border_color(self):
-        """
-        Toggles the border style if the checkmark is chosen and toggled.
-        """
-        if self.groupbox.styleSheet() == GroupBoxStyle:
-            self.groupbox.setStyleSheet(GroupBoxToggleStyle)
-        else:
-            self.groupbox.setStyleSheet(GroupBoxStyle)

@@ -90,8 +90,8 @@ class User:
 
     def get_playlist_songs(self, pl_id):
         """
-        Returns a list of [song, list of the artists] for each song in a
-        playlist for the given user.
+        Returns a list of [song, list of the artists, song ID] for each song in
+        a playlist for the given user.
 
         Parameters:
         pl_id - The playlist id of the user to get the song data for
@@ -192,7 +192,7 @@ class User:
             artist_and - At least one artist of the song must have every element
                           in the list found in their name
             artist_or - At least one artist of the song must have at least one
-                        element in the lsit found in their name                        
+                        element in the list found in their name                        
             song_exact - The song name must be exactly one of the elements in
                          the list
             song_and - The song name must have every element of the list found

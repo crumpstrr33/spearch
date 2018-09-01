@@ -1,9 +1,12 @@
 from PyQt5.QtWidgets import (QWidget, QComboBox, QVBoxLayout, QHBoxLayout,
     QPushButton, QGridLayout, QLineEdit, QWidgetItem, QCheckBox, QTableWidget,
     QHeaderView, QLabel, QTableWidgetItem)
+from PyQt5.QtCore import Qt
 
 from custom_widgets import SongDataTableWidget, WidgetGroupBox
 from popups import NewPlaylistDialog
+from style import (PlaylistSongsStyle, SimpleFilterPlaylistStyle,
+    AdvFilterPlaylistStyle, QueueMakerStyle, CurrentQueueStyle)
 
 
 class PlaylistSongsUI(QWidget):
@@ -25,7 +28,9 @@ class PlaylistSongsUI(QWidget):
 
     def init_ui(self):
         # Create song list
-        self.songs_table = SongDataTableWidget(self, select_artists=False)
+        self.songs_table = SongDataTableWidget(self)
+        self.songs_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.songs_table.setFocusPolicy(Qt.NoFocus)
 
         # Create list for selection of playlists
         self.playlists = QComboBox(self)
@@ -45,6 +50,8 @@ class PlaylistSongsUI(QWidget):
         v_box = QVBoxLayout(self)
         v_box.addLayout(top_row)
         v_box.addWidget(self.songs_table)
+
+        self.setStyleSheet(PlaylistSongsStyle)
 
     def add_songs(self, pl_id):
         """
@@ -88,7 +95,7 @@ class AdvFilterPlaylistsUI(QWidget):
         self.add_songs_button = QPushButton('Add', self)
         self.add_songs_button.setMaximumWidth(self.max_width / 4)
         # Table to show filtered songs
-        self.songs_table = SongDataTableWidget(self, False, False, False)
+        self.songs_table = SongDataTableWidget(False, False, False, self)
         self.songs_table.setMaximumWidth(self.max_width - self.ADD_PLAYLIST_WIDTH)
 
         # Total layout for playlist filters
@@ -106,6 +113,8 @@ class AdvFilterPlaylistsUI(QWidget):
         h_box = QHBoxLayout(self)
         h_box.addLayout(self.filt_layout)
         h_box.addLayout(v_box)
+
+        self.setStyleSheet(AdvFilterPlaylistStyle)
 
     def get_layout_data(self):
         """
@@ -251,7 +260,7 @@ class AdvFilterPlaylistsUI(QWidget):
         # Create grid layout for the AND logic section
         and_grid = QGridLayout()
         # Create groupbox for AND section
-        and_group_box = WidgetGroupBox('AND', 'QCheckBox', 'Not', 200, and_grid)
+        and_group_box = WidgetGroupBox('AND', 'QCheckBox', 'Not', 365, and_grid)
         # Add the groupbox to the grid layout for the entire logic section
         logic_grid.addWidget(and_group_box, logic_grid.count(), 0)
         # Create button to add filters, add the functionality and add to layout
@@ -262,7 +271,7 @@ class AdvFilterPlaylistsUI(QWidget):
         # Create grid layout for the OR logic section
         or_grid = QGridLayout()
         # Create groupbox for OR section
-        or_group_box = WidgetGroupBox('OR', 'QCheckBox', 'Not', 200, or_grid)
+        or_group_box = WidgetGroupBox('OR', 'QCheckBox', 'Not', 365, or_grid)
         # Add the groupbox to the grid layout for the entire logic section
         logic_grid.addWidget(or_group_box, logic_grid.count(), 0)
         # Create button to add filters, add the functionality and add to layout
@@ -360,7 +369,7 @@ class SimpleFilterPlaylistUI(QWidget):
         self.add_songs_button = QPushButton('Add', self)
         self.add_songs_button.setMaximumWidth(self.max_width / 4)
         # Table to show filtered songs
-        self.songs_table = SongDataTableWidget(self, False, False, False)
+        self.songs_table = SongDataTableWidget(False, False, False, self)
         self.songs_table.setMaximumWidth(self.max_width - self.ADD_PLAYLIST_WIDTH)
 
         # Total layout for left side
@@ -386,6 +395,8 @@ class SimpleFilterPlaylistUI(QWidget):
         h_box = QHBoxLayout(self)
         h_box.addLayout(self.filt_layout)
         h_box.addLayout(v_box_right)
+
+        self.setStyleSheet(SimpleFilterPlaylistStyle)
 
     def get_unique_artists(self, pl_id):
         """
@@ -493,6 +504,8 @@ class QueueMakerUI(QWidget):
         h_box.addLayout(v_box)
         h_box.addWidget(self.queue_list)
 
+        self.setStyleSheet(QueueMakerStyle)
+
     def clear_queue(self):
         """
         Removes all of the songs from the queue list maker
@@ -530,3 +543,5 @@ class CurrentQueueUI(QWidget):
 
         v_box = QVBoxLayout(self)
         v_box.addWidget(self.current_queue)
+
+        self.setStyleSheet(CurrentQueueStyle)

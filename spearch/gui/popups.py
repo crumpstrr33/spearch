@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (QPushButton, QLineEdit, QHBoxLayout, QDialog,
     QDialogButtonBox, QLabel, QCheckBox, QVBoxLayout, QHBoxLayout)
 from PyQt5.QtCore import Qt
 
+from style import LoginStyle
 from client import Client
 # After import, remove from path and no one is the wiser
 sys.path.pop(0)
@@ -27,19 +28,33 @@ class Login(QDialog):
         Login page. Pretty straightfoward.
         """
         super().__init__()
+        self.login_text = QLabel('Enter username')
         self.button = QPushButton('Login', self)
         self.button.clicked.connect(self.accept)
         self.input = QLineEdit()
 
         # Design the GUI
-        h_box = QHBoxLayout()
-        h_box.addStretch()
-        h_box.addWidget(self.input)
-        h_box.addWidget(self.button)
-        h_box.addStretch()
+        h_box_top = QHBoxLayout()
+        h_box_top.addStretch()
+        h_box_top.addWidget(self.login_text)
+        h_box_top.addStretch()
 
-        self.setLayout(h_box)
+        h_box_bot = QHBoxLayout()
+        h_box_bot.addStretch()
+        h_box_bot.addWidget(self.input)
+        h_box_bot.addWidget(self.button)
+        h_box_bot.addStretch()
+
+        v_box = QVBoxLayout()
+        v_box.addStretch()
+        v_box.addLayout(h_box_top)
+        v_box.addLayout(h_box_bot)
+        v_box.addStretch()
+
+        self.setLayout(v_box)
         self.setWindowTitle('Spearch')
+
+        self.setStyleSheet(LoginStyle)
 
     def accept(self):
         """
