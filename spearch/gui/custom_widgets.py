@@ -89,25 +89,13 @@ class SongDataTableWidget(QTableWidget):
             self.setSortingEnabled(False)
 
         # Whether it's a list of song data or a QTableWidget
-        if not isinstance(songs, QTableWidget):
-            # Iterate through each song
-            for row, song_data in enumerate(songs):
-                # Current row index
-                ind = row + row_count
-
-                # Create the new row
-                self.insertRow(ind)
-
-                # Create song, artist and ID widget items
-                song = QTableWidgetItem(song_data[0])
-                artist = QTableWidgetItem(', '.join(song_data[1]))
-                song_id = QTableWidgetItem(song_data[2])
-
-                self._add_row(ind, song, artist, song_id)
-        else:
+        if isinstance(songs, QTableWidget):
             # Get the songs from the song list
             if selected:
-                row_nums = [x.row() for x in songs.selectedIndexes()]
+                # For some reason, each selected song gives back two different
+                # QtCore.QModelIndex's which give the same index. So use a set
+                # to remove duplicates and sort back into a list
+                row_nums = sorted(set(x.row() for x in songs.selectedIndexes()))
             else:
                 row_nums = range(songs.rowCount())
 
@@ -128,6 +116,21 @@ class SongDataTableWidget(QTableWidget):
                 song = QTableWidgetItem(songs.item(row, 0))
                 artist = QTableWidgetItem(songs.item(row, 1).text())
                 song_id =  QTableWidgetItem(songs.item(row, 2).text())
+
+                self._add_row(ind, song, artist, song_id)
+        else:
+            # Iterate through each song
+            for row, song_data in enumerate(songs):
+                # Current row index
+                ind = row + row_count
+
+                # Create the new row
+                self.insertRow(ind)
+
+                # Create song, artist and ID widget items
+                song = QTableWidgetItem(song_data[0])
+                artist = QTableWidgetItem(', '.join(song_data[1]))
+                song_id = QTableWidgetItem(song_data[2])
 
                 self._add_row(ind, song, artist, song_id)
 
