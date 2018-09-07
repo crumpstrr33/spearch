@@ -10,15 +10,18 @@ from PyQt5.QtWidgets import (QPushButton, QLineEdit, QHBoxLayout, QDialog,
     QDialogButtonBox, QLabel, QCheckBox, QVBoxLayout, QHBoxLayout)
 from PyQt5.QtCore import Qt
 
-from style import LoginStyle
+from style import LoginStyle, NewPlaylistStyle
 from client import Client
 # After import, remove from path and no one is the wiser
 sys.path.pop(0)
 
-SCOPE = 'user-modify-playback-state ' + \
-        'playlist-read-private playlist-read-collaborative ' + \
-        'playlist-modify-private playlist-modify-public ' + \
-        'user-read-playback-state'
+
+SCOPE = ' '.join([
+    'user-modify-playback-state',
+    'playlist-read-private playlist-read-collaborative',
+    'playlist-modify-private playlist-modify-public',
+    'user-read-playback-state'
+])
 
 
 class Login(QDialog):
@@ -101,6 +104,8 @@ class NewPlaylistDialog(QDialog):
         layout.addLayout(h_box)
         # layout.addWidget(self.private)
         layout.addWidget(buttons)
+
+        self.setStyleSheet(NewPlaylistStyle)
 
     @staticmethod
     def getPlaylistName():

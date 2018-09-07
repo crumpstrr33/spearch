@@ -1,16 +1,28 @@
+from colorsys import rgb_to_hls, hls_to_rgb
+
 """
 USEFUL FUNCTIONS
 """
 def darken(color, amount):
-    hex_values = [color[1:][i:i+2] for i in range(0, len(color)-2, 2)]
-    new_hex_values = [hex(int(int(x, 16)/amount))[2:].zfill(2) for x in hex_values]
-    return '#' + ''.join(new_hex_values)
+    # Get the 3 hex values from the string
+    hex_vals = [color[1:][i: i+2] for i in range(0, 5, 2)]
+    # Convert them in RGB as normalized floats
+    rgb_vals = [int(x, 16)/255 for x in hex_vals]
+    # Convert to HLS
+    hls_vals = rgb_to_hls(*rgb_vals)
+    # Change the lightness and convert back to RBG
+    new_vals = hls_to_rgb(hls_vals[0],
+        max(0, 1 - amount*(1 - hls_vals[1])), hls_vals[2])
+    # Convert back to hex values and return
+    return '#' + ''.join([hex(int(255*x))[2:].zfill(2) for x in new_vals])
 
+def lighten(color, amount):
+    return darken(color, 1/amount)
 
 """ CONSTANTS """
 # Background color of app
 BG_COLOR = '#292929'
-# Background color of Song Tabls
+# Background color of Song Tables
 STBG_COLOR = '#06603d'
 # Widget color
 W_COLOR = '#84bd00'
@@ -31,10 +43,19 @@ QPushButton {{
     font-weight: 800;
     font-size: 16px;
     color: {black};
+    border: 1px solid {bg_color};
+    border-radius: 3px;
+    padding: 5px 10px 5px 10px;
+}}
+QPushButton:pressed {{
+    border-style: inset;
+    background-color: {pressed_color};
 }}
 '''.format(
     w_color=W_COLOR,
-    black=BLACK
+    black=BLACK,
+    bg_color=BG_COLOR,
+    pressed_color=darken(W_COLOR, 1.5)
 )
 
 # Every QComboBox
@@ -47,15 +68,17 @@ QComboBox {{
     color: {black};
 }}
 QComboBox QAbstractItemView {{
-    background-color: {w_color};
-    selection-background-color: {select_color};
-    selection-color: #aaaaaa;
+    background-color: {item_color};
+    selection-background-color: {select_bg_color};
+    selection-color: {select_color};
     color: {black};
 }}
 '''.format(
     w_color=W_COLOR,
-    select_color=darken(W_COLOR, 2),
-    black=darken(BLACK, 2)
+    item_color=WHITE,
+    select_bg_color=lighten(W_COLOR, 2),
+    select_color=darken(BLACK, 2),    
+    black=BLACK#darken(BLACK, 2)
 )
 
 # Every LineEdit
@@ -211,4 +234,24 @@ QLineEdit {{
     font_color=FONT_COLOR,
     button=BUTTON_STYLE,
     black=darken(BLACK, 2)
+)
+
+NewPlaylistStyle = '''
+QDialog {{
+    background-color: {bg_color};
+}}
+QLabel {{
+    font-size: 25px;
+    font-family: {title_font};
+    font-weight: 300;
+    color: {font_color};
+}}
+{lineedit}
+{button}
+'''.format(
+    bg_color=BG_COLOR,
+    title_font=TITLE_FONT,
+    font_color=FONT_COLOR,
+    lineedit=LINEEDIT_STYLE,
+    button=BUTTON_STYLE
 )
