@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import (QWidget, QComboBox, QVBoxLayout, QHBoxLayout,
     QHeaderView, QLabel, QTableWidgetItem)
 from PyQt5.QtCore import Qt
 
-from custom_widgets import SongDataTableWidget, WidgetGroupBox
+from custom_widgets import (SimpleFilterArtistsTable,
+    SongDataTableWidget, WidgetGroupBox)
 from popups import NewPlaylistDialog
 from style import (PlaylistSongsStyle, SimpleFilterPlaylistStyle,
     AdvFilterPlaylistStyle, QueueMakerStyle, CurrentQueueStyle)
@@ -28,7 +29,7 @@ class PlaylistSongsUI(QWidget):
 
     def init_ui(self):
         # Create song list
-        self.songs_table = SongDataTableWidget(self)
+        self.songs_table = SongDataTableWidget(True, True, self)
         self.songs_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.songs_table.setFocusPolicy(Qt.NoFocus)
 
@@ -62,7 +63,7 @@ class PlaylistSongsUI(QWidget):
         pl_id - The ID of the playlist
         """
         songs = self.user.get_playlist_songs(pl_id)
-        self.songs_table.add_songs(songs)
+        self.songs_table.add_songs(songs, False)
 
 
 class AdvFilterPlaylistsUI(QWidget):
@@ -95,7 +96,7 @@ class AdvFilterPlaylistsUI(QWidget):
         self.add_songs_button = QPushButton('Add', self)
         self.add_songs_button.setMaximumWidth(self.max_width / 4)
         # Table to show filtered songs
-        self.songs_table = SongDataTableWidget(False, False, False, self)
+        self.songs_table = SongDataTableWidget(False, False, self)
         self.songs_table.setMaximumWidth(self.max_width - self.ADD_PLAYLIST_WIDTH)
 
         # Total layout for playlist filters
@@ -140,7 +141,7 @@ class AdvFilterPlaylistsUI(QWidget):
             filt_songs += self.user.filter_playlist(songs, _or=data)
 
         # Add songs to the table
-        self.songs_table.add_songs(filt_songs)
+        self.songs_table.add_songs(filt_songs, True)
 
     def _parse_filt_layout(self, layout=None, depth=0, filt_dict=None, pl=None,
                            logic=None):
@@ -323,8 +324,6 @@ class SimpleFilterPlaylistUI(QWidget):
         self.max_height = max_height
         self.max_width = max_width
 
-        # Set of artists currently in artist list
-        self.artists_set = set()
         # Bool used to not add artist when index change of artist Combobox is
         # cause by the change in the playlist Combobox
         self.do_not_add_artist = True
@@ -336,7 +335,7 @@ class SimpleFilterPlaylistUI(QWidget):
 
     def init_ui(self):
         # Table of artists to include/exclude
-        self.artists_table = QTableWidget(0, 1, self)
+        self.artists_table = SimpleFilterArtistsTable(0, 1, self)
         self.artists_table.setHorizontalHeaderLabels(['Artists'])
         header = self.artists_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -369,7 +368,7 @@ class SimpleFilterPlaylistUI(QWidget):
         self.add_songs_button = QPushButton('Add', self)
         self.add_songs_button.setMaximumWidth(self.max_width / 4)
         # Table to show filtered songs
-        self.songs_table = SongDataTableWidget(False, False, False, self)
+        self.songs_table = SongDataTableWidget(False, False, self)
         self.songs_table.setMaximumWidth(self.max_width - self.ADD_PLAYLIST_WIDTH)
 
         # Total layout for left side
@@ -398,6 +397,14 @@ class SimpleFilterPlaylistUI(QWidget):
 
         self.setStyleSheet(SimpleFilterPlaylistStyle)
 
+    @property
+    def artists_set(self):
+        """
+        A list of the artists in self.artists_table
+        """
+        return set(self.artists_table.item(x, 0).text()
+            for x in range(self.artists_table.rowCount()))
+
     def get_unique_artists(self, pl_id):
         """
         Gets every different artist for the playlist currently selected in the
@@ -423,15 +430,13 @@ class SimpleFilterPlaylistUI(QWidget):
         # Reset artists table by deleting ever row
         for _ in range(self.artists_table.rowCount()):
             self.artists_table.removeRow(0)
-        # Reset list of artists
-        self.artists_set = set()
 
     def add_artists(self):
         """
         Adds the selected artist from the self.artists Combobox and adds it
         to the self.artists_table table widget.
         """
-        # Doesn't add if cause by change in playlist
+        # Doesn't add if caused by change in playlist
         if not self.do_not_add_artist:
             artist = self.artists.currentText()
             cur_row = self.artists_table.rowCount()
@@ -439,8 +444,6 @@ class SimpleFilterPlaylistUI(QWidget):
             if artist not in self.artists_set:
                 self.artists_table.insertRow(cur_row)
                 self.artists_table.setItem(cur_row, 0, QTableWidgetItem(artist))
-                # Add artist to list of currents artists
-                self.artists_set.add(artist)
 
         self.do_not_add_artist = False
 
@@ -452,14 +455,15 @@ class SimpleFilterPlaylistUI(QWidget):
         """
         logic = self.logic.currentText()
         songs_to_add = []
+
         # Run through every song in the current playlist selected
         for song in self.songs:
             # Since some songs have multiple artists
             for artist in song[1]:
-                if (artist in self.artists_set and  logic == 'Include') or \
+                if (artist in self.artists_set and logic == 'Include') or \
                    (artist not in self.artists_set and logic == 'Exclude'):
                     songs_to_add.append(song)
-        self.songs_table.add_songs(songs_to_add)
+        self.songs_table.add_songs(songs_to_add, True)
 
 
 class QueueMakerUI(QWidget):
@@ -491,7 +495,7 @@ class QueueMakerUI(QWidget):
         self.create_playlist = QPushButton('Make Playlist', self)
 
         # List of songs and their artists
-        self.queue_list = SongDataTableWidget(self)
+        self.queue_list = SongDataTableWidget(False, False, self)
 
         # Put it all together
         v_box = QVBoxLayout()
@@ -539,7 +543,7 @@ class CurrentQueueUI(QWidget):
 
     def init_ui(self):
         # List of songs and their artists
-        self.current_queue = SongDataTableWidget(self)
+        self.current_queue = SongDataTableWidget(False, False, self)
 
         v_box = QVBoxLayout(self)
         v_box.addWidget(self.current_queue)

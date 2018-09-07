@@ -1,32 +1,47 @@
 from PyQt5.QtWidgets import (QTableWidget, QAbstractItemView, QHeaderView,
-    QTableWidgetItem, QWidget, QVBoxLayout, QGroupBox, QPushButton, QCheckBox)
-from PyQt5 import QtCore
+    QTableWidgetItem, QWidget, QVBoxLayout, QGroupBox, QPushButton, QCheckBox,
+    QMenu, QAction)
+from PyQt5.QtCore import Qt
 
 from style import BG_COLOR
 
 
+class SimpleFilterArtistsTable(QTableWidget):
+    """
+    When right-clicked, it gives an option to delete the cell clicked in.
+    Otherwise, just a normal QTableWidget.
+    """
+
+    def mousePressEvent(self, event):
+        if (event.button() == Qt.RightButton and
+            self.rowAt(event.pos().y()) != -1):
+            delete = QAction('Delete', self)
+            delete.triggered.connect(lambda:
+                self.removeRow(self.rowAt(event.pos().y())))
+
+            self.menu = QMenu(self)
+            self.menu.addAction(delete)
+            self.menu.exec_(event.globalPos())
+
+
 class SongDataTableWidget(QTableWidget):
 
-    def __init__(self, select_songs=True, select_artists=True,
-                 sortable=True, parent=None):
+    def __init__(self, selectable, sortable, parent=None):
         """
         A customized version of the QTableWidget. It is used for listing and
         displaying song data.
 
         Parameters:
-        selected_songs - (default True) Each row (i.e. each song) will be 
-                         selectable if True and not if False.
-        selected_artists - (default True) Same as with selected_songs but this
-                           is speific to the Artists row.
-        sortable - (default True) Able to be sorted by clicking on a column
-                   header if True and not if False.
+        selectable - If True, the contents of the table can be selected,
+                     otherwise they cannot.
+        sortable - Able to be sorted by clicking on a column header if True and
+                   not if False.
         parent - (default None) Parent this widget.
         """
         super().__init__(0, 3, parent)
 
         # Customization
-        self.select_songs = select_songs
-        self.select_artists = select_artists
+        self.selectable = selectable
         self.sortable = sortable
 
         # Give the headers for Song and Artists
@@ -47,50 +62,94 @@ class SongDataTableWidget(QTableWidget):
         # Remove the indexing on the side
         self.verticalHeader().setVisible(False)
 
-    def add_songs(self, songs):
+    def add_songs(self, songs, reset, selected=None):
         """
         Will add the song data pass to the table.
 
         Parameters:
         songs - The song data to add. This data is in the form:
                 [<name>, (<artist1>, <artist2>, ...), <id>]
+                Or as a QTableWidget which it'll pull the info from.
+        reset - Will reset the table first if True, otherwise appends new songs
+                onto the end.
+        selected - If True, will add only the songs that have been selected
+                   (only if songs is a QTableWidget)
         """
-        # Reset table by deleting ever row
-        for _ in range(self.rowCount()):
-            self.removeRow(0)
+        # Get current row number
+        if reset:
+            # Reset table by deleting ever row
+            for _ in range(self.rowCount()):
+                self.removeRow(0)
+            row_count = 0
+        else:
+            row_count = self.rowCount()
+
         # Must disable sorting before adding the new songs
         if self.sortable:
             self.setSortingEnabled(False)
 
-        # Iterate through each song
-        for row, song_data in enumerate(songs):
-            # Create the new row
-            self.insertRow(row)
+        # Whether it's a list of song data or a QTableWidget
+        if not isinstance(songs, QTableWidget):
+            # Iterate through each song
+            for row, song_data in enumerate(songs):
+                # Current row index
+                ind = row + row_count
 
-            # Create song widget item
-            song = QTableWidgetItem(song_data[0])
-            # Disable selecting if wanted
-            if not self.select_songs:
-                song.setFlags(QtCore.Qt.ItemIsEnabled)
-                song.setFlags(QtCore.Qt.ItemIsSelectable)
-            # Insert song name
-            self.setItem(row, 0, song)
+                # Create the new row
+                self.insertRow(ind)
 
-            # Create artist widget item
-            artist = QTableWidgetItem(', '.join(song_data[1]))
-            # Disable selecting if wanted
-            if not self.select_artists:
-                artist.setFlags(QtCore.Qt.ItemIsEnabled)
-                artist.setFlags(QtCore.Qt.ItemIsSelectable)
-            # Insert artist name(s)
-            self.setItem(row, 1, artist)
+                # Create song, artist and ID widget items
+                song = QTableWidgetItem(song_data[0])
+                artist = QTableWidgetItem(', '.join(song_data[1]))
+                song_id = QTableWidgetItem(song_data[2])
 
-            # Add song ID to hidden row
-            self.setItem(row, 2, QTableWidgetItem(song_data[2]))
+                self._add_row(ind, song, artist, song_id)
+        else:
+            # Get the songs from the song list
+            if selected:
+                row_nums = [x.row() for x in songs.selectedIndexes()]
+            else:
+                row_nums = range(songs.rowCount())
+
+            num_skipped = 0
+            for n, row in enumerate(row_nums):
+                # Skip song if no ID
+                if not songs.item(row, 2).text():
+                    num_skipped += 1
+                    continue
+
+                # Current row index
+                ind = row_count + n - num_skipped
+
+                # Create row
+                self.insertRow(ind)
+
+                # Create song, artist and ID widget items
+                song = QTableWidgetItem(songs.item(row, 0))
+                artist = QTableWidgetItem(songs.item(row, 1).text())
+                song_id =  QTableWidgetItem(songs.item(row, 2).text())
+
+                self._add_row(ind, song, artist, song_id)
 
         # Enable sorting if wanted
         if self.sortable:
             self.setSortingEnabled(True)
+
+    def _add_row(self, row_ind, song, artist, song_id):
+        """
+        Adds a row to the table
+        """
+        # Disable selecting if not wanted
+        if not self.selectable:
+            song.setFlags(Qt.ItemIsEnabled)
+            song.setFlags(Qt.ItemIsSelectable)
+            artist.setFlags(Qt.ItemIsEnabled)
+            artist.setFlags(Qt.ItemIsSelectable)
+
+        # Inset info
+        self.setItem(row_ind, 0, song)
+        self.setItem(row_ind, 1, artist)
+        self.setItem(row_ind, 2, song_id)
 
 
 class WidgetGroupBox(QWidget):

@@ -217,65 +217,22 @@ class Tabs(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
-        # Add currently selected songs in playlist songs tab to queue
+        # Adds selected songs from Playlist tab to the Current Queue tab
         self.pl_tab.add_songs_button.clicked.connect(lambda:
-            self._add_to_queue(self.pl_tab.songs_table, True))
+            self.createq_tab.queue_list.add_songs(
+                self.pl_tab.songs_table, False, True))
+        # Adds songs from Simple/Advanced Filter tab to Current Queue tab
         self.simp_filt_tab.add_songs_button.clicked.connect(lambda:
-            self._add_to_queue(self.simp_filt_tab.songs_table, False))
+            self.createq_tab.queue_list.add_songs(
+                self.simp_filt_tab.songs_table, False, False))
         self.adv_filt_tab.add_songs_button.clicked.connect(lambda:
-            self._add_to_queue(self.adv_filt_tab.songs_table, False))
-
+            self.createq_tab.queue_list.add_songs(
+                self.adv_filt_tab.songs_table, False, False))
+        
         # Create queue with currently shown songs
         self.createq_tab.create_songs.clicked.connect(self._create_queue)
 
         self.tabs.setStyleSheet(TabStyle)
-
-    def _add_to_queue(self, songs_table, selected):
-        """
-        Creates the queue based on the songs in the queue list maker. The songs
-        added from the playlist tab are only the selected songs whereas the
-        songs added from the filter tab are all of them as determined by
-        the `selected` boolean.
-        """
-        # Current row count
-        row_count = self.createq_tab.queue_list.rowCount()
-        # Rows selected to add
-        if selected:
-            row_nums = [x.row() for x in songs_table.selectedIndexes()]
-        else:
-            row_nums = range(songs_table.rowCount())
-
-        num_skipped = 0
-        # Iterate through each row of QTableWidget in Queue Maker
-        for n, row in enumerate(row_nums):
-            # Skip song if no ID
-            if not songs_table.item(row, 2).text():
-                num_skipped += 1
-                continue
-
-            # Current row index
-            ind = row_count + n - num_skipped
-
-            # Create row
-            self.createq_tab.queue_list.insertRow(ind)
-
-            # Add song
-            song = QTableWidgetItem(songs_table.item(row, 0))
-            # Remove ability to select it
-            song.setFlags(QtCore.Qt.ItemIsEnabled)
-            song.setFlags(QtCore.Qt.ItemIsSelectable)
-            self.createq_tab.queue_list.setItem(ind, 0, song)
-
-            # Add artist(s)
-            artist = QTableWidgetItem(songs_table.item(row, 1).text())
-            # Remove the ability to select it
-            artist.setFlags(QtCore.Qt.ItemIsEnabled)
-            artist.setFlags(QtCore.Qt.ItemIsSelectable)
-            self.createq_tab.queue_list.setItem(ind, 1, artist)
-
-            # Hidden column with song IDs
-            song_id = QTableWidgetItem(songs_table.item(row, 2).text())
-            self.createq_tab.queue_list.setItem(ind, 2, song_id)
 
     def _create_queue(self):
         """
