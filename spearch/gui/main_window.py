@@ -9,10 +9,10 @@ from functools import partial
 from PyQt5.QtWidgets import (QMainWindow, QAction, QWidget, QVBoxLayout,
     QTabWidget, QTableWidgetItem, qApp, QDialog, QMenu)
 from PyQt5.QtGui import QFont
-from PyQt5 import QtCore
+from PyQt5.QtCore import Qt
 
-from tabs import (PlaylistSongsUI, AdvFilterPlaylistsUI, QueueMakerUI,
-    CurrentQueueUI, SimpleFilterPlaylistUI) 
+from tabs import (PlaylistSongsUI, AdvFilterPlaylistsUI, SimpleFilterPlaylistUI,
+    QueueMakerUI) 
 from popups import Login
 from user import User
 from style import TabStyle, BG_COLOR
@@ -205,13 +205,11 @@ class Tabs(QWidget):
         self.simp_filt_tab = SimpleFilterPlaylistUI(None, user, max_height, max_width)
         self.adv_filt_tab = AdvFilterPlaylistsUI(None, user, max_height, max_width)
         self.createq_tab = QueueMakerUI(None, user)
-        self.curq_tab = CurrentQueueUI(None, user)
 
         # Add tabs
         self.tabs.addTab(self.pl_tab, 'Playlist Songs')
         self.tabs.addTab(self.simp_filt_tab, 'Filter Playlists')
         self.tabs.addTab(self.createq_tab, 'Queue Maker')
-        self.tabs.addTab(self.curq_tab, 'Current Queue')
 
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
@@ -229,7 +227,6 @@ class Tabs(QWidget):
             self.createq_tab.queue_list.add_songs(
                 self.adv_filt_tab.songs_table, False, False))
         
-        # Create queue with currently shown songs
         self.createq_tab.create_songs.clicked.connect(self._create_queue)
 
         self.tabs.setStyleSheet(TabStyle)
@@ -238,33 +235,10 @@ class Tabs(QWidget):
         """
         Creates a queue of the songs in the QTableWidget under Queue Maker
         """
-        # Reset the data by removing old songs and whatnot
-        for _ in range(self.curq_tab.current_queue.rowCount()):
-            self.curq_tab.current_queue.removeRow(0)
-        self.curq_tab.current_queue.verticalHeader().setVisible(False)
-
+        # Get song IDs and create queue with them
         song_ids = []
         for row in range(self.createq_tab.queue_list.rowCount()):
-            # Create the row
-            self.curq_tab.current_queue.insertRow(row)
-
-            # Add song name
-            song = QTableWidgetItem(self.createq_tab.queue_list.item(row, 0).text())
-            song.setFlags(QtCore.Qt.ItemIsEnabled)
-            song.setFlags(QtCore.Qt.ItemIsSelectable)
-            self.curq_tab.current_queue.setItem(row, 0, song)
-
-            # Add artist(s)
-            artist = QTableWidgetItem(self.createq_tab.queue_list.item(row, 1).text())
-            artist.setFlags(QtCore.Qt.ItemIsEnabled)
-            artist.setFlags(QtCore.Qt.ItemIsSelectable)
-            self.curq_tab.current_queue.setItem(row, 1, artist)
-
-            # Hidden column with song IDs
             song_id = QTableWidgetItem(self.createq_tab.queue_list.item(row, 2).text())
-            self.curq_tab.current_queue.setItem(row, 2, song_id)
-            # Record IDs for creating queue
             song_ids.append(song_id.text())
 
-        # Create queue
         self.user.create_queue(song_ids)

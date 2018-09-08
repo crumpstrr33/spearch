@@ -175,13 +175,6 @@ QueueMakerStyle = '''
     tablewidget=TABLEWIDGET_STYLE
 )
 
-# Current Queue tab
-CurrentQueueStyle = '''
-{tablewidget}
-'''.format(
-    tablewidget=TABLEWIDGET_STYLE
-)
-
 # Tab bar/widgets
 TabStyle = '''
 QTabWidget::pane {{

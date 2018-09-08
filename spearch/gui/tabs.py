@@ -7,7 +7,7 @@ from custom_widgets import (SimpleFilterArtistsTable,
     SongDataTableWidget, WidgetGroupBox)
 from popups import NewPlaylistDialog
 from style import (PlaylistSongsStyle, SimpleFilterPlaylistStyle,
-    AdvFilterPlaylistStyle, QueueMakerStyle, CurrentQueueStyle)
+    AdvFilterPlaylistStyle, QueueMakerStyle)
 
 
 class PlaylistSongsUI(QWidget):
@@ -530,22 +530,15 @@ class QueueMakerUI(QWidget):
             self.user.create_playlist(song_ids, playlist_name, not private)
 
 
-class CurrentQueueUI(QWidget):
+class TabSkeleton(QWidget):
 
     def __init__(self, parent, user):
         """
-        Tab that shows the current queue which is created via the Create 
-        button on the Queue Maker tab.
+        Tab Description
         """
         super().__init__(parent)
         self.user = user
         self.init_ui()
 
     def init_ui(self):
-        # List of songs and their artists
-        self.current_queue = SongDataTableWidget(False, False, self)
-
-        v_box = QVBoxLayout(self)
-        v_box.addWidget(self.current_queue)
-
-        self.setStyleSheet(CurrentQueueStyle)
+        pass
