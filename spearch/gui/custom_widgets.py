@@ -7,10 +7,17 @@ from style import BG_COLOR
 
 
 class SimpleFilterArtistsTable(QTableWidget):
-    """
-    When right-clicked, it gives an option to delete the cell clicked in.
-    Otherwise, just a normal QTableWidget.
-    """
+    def __init__(self, row, col, parent=None):
+        """
+        When right-clicked, it gives an option to delete the cell clicked in.
+        Otherwise, just a normal QTableWidget without row indexing.
+        """
+        super().__init__(row, col, parent=parent)
+
+        # Remove the gridlines of the table
+        self.setShowGrid(False)
+        # Remove the indexing on the side
+        self.verticalHeader().setVisible(False)
 
     def mousePressEvent(self, event):
         if (event.button() == Qt.RightButton and
@@ -97,10 +104,12 @@ class SongDataTableWidget(QTableWidget):
                 # to remove duplicates and sort back into a list
                 row_nums = sorted(set(x.row() for x in songs.selectedIndexes()))
             else:
+                # Get an iterator to go through every row if not selecting
                 row_nums = range(songs.rowCount())
 
             num_skipped = 0
             for n, row in enumerate(row_nums):
+                # Apparently this was an issue vvvvvv don't remember at all lol
                 # Skip song if no ID
                 if not songs.item(row, 2).text():
                     num_skipped += 1

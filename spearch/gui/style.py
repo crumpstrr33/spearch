@@ -66,6 +66,8 @@ QComboBox {{
     selection-color: #aaaaaa;
     font-weight: 800;
     color: {black};
+    border-radius: 5px;
+    height: 19px;
 }}
 QComboBox QAbstractItemView {{
     background-color: {item_color};
@@ -73,12 +75,27 @@ QComboBox QAbstractItemView {{
     selection-color: {select_color};
     color: {black};
 }}
+QComboBox::drop-down {{
+    background-color: {arrow_bg_color};
+    border: 1px solid {arrow_border_color};
+    border-radius: 2px;
+    height: 13px;
+    width: 30px;
+    right: 3px;
+    top: 2px;
+}}
+QComboBox::down-arrow {{
+    image: url(down_arrow.png);
+    height: 9px;
+}}
 '''.format(
     w_color=W_COLOR,
     item_color=WHITE,
     select_bg_color=lighten(W_COLOR, 2),
     select_color=darken(BLACK, 2),    
-    black=BLACK#darken(BLACK, 2)
+    black=BLACK,
+    arrow_bg_color=lighten(W_COLOR, 1.2),
+    arrow_border_color=darken(W_COLOR, 1.1)
 )
 
 # Every LineEdit
@@ -92,30 +109,34 @@ QLineEdit {{
     black=darken(BLACK, 2)
 )
 
-# Every QTableWidget (including SongDataTableWidget objects)
+# Every QTableWidget (including SongDataTableWidget objects) and a little extra
+# for the SimpleFilterArtistsTable in the Simple Filter tab (bigger text)
 TABLEWIDGET_STYLE = '''
-QTableWidget {{
+QTableWidget, SimpleFilterArtistsTable {{
     background-color: {stbg_color};
     selection-background-color: {select_color};
     selection-color: {white};
+    font-size: 15px;
+    font-weight: 450;
 }}
-QHeaderView::section {{
-    background-color: #dddddd;
+QHeaderView::section, SimpleFilterArtistsTable::section {{
+    background-color: {white};
     font-weight: 600;
     font-size: 17px;
+    height: 30px;
 }}
-QHeaderView::section:checked {{
-    background-color: #dddddd;
-}}
-QTableWidget QTableCornerButton::section {{
-    background-color: #dddddd;
+SimpleFilterArtistsTable {{
+    font-size: 20px;
+    font-weight: 500;
 }}
 '''.format(
     stbg_color=STBG_COLOR,
     select_color=darken(STBG_COLOR, 2),
     white=WHITE
 )
-
+## How we do this? vvvvv
+## HOW TO STYLE THE UNSELECTABLE ITEMS OF QTABLEWIDGET
+## MAKE HEADERS OF QTABLEWIDGET UNSELECTABLE
 
 """ TAB-SPECIFIC """
 # Advanced Search QGroupBoxes for Filter Playlists tab
@@ -144,6 +165,8 @@ QCheckBox {{
 SimpleFilterPlaylistStyle = '''
 QLabel {{
     color: {white};
+    font-size: 12px;
+    font-weight: 600;
 }}
 {button}
 {combobox}
