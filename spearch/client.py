@@ -115,13 +115,13 @@ class Client:
             browser.close()
             raise TimeoutException('Login has timed out.')
 
-    def _request_token(self, secret=False):
+    def _request_token(self, secret=True):
         """
         Using the code from _get_code, gets the access/refresh tokens and
         writes the refresh token to the .ini file.
 
         Parameters:
-        secret - (default False) If True, the refresh token won't be written
+        secret - (default True) If True, the refresh token won't be written
                  to the .ini file. 
         """
         # Get the code

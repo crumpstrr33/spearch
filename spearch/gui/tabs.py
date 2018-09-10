@@ -360,6 +360,7 @@ class SimpleFilterPlaylistUI(QWidget):
         # Combobox choice for including or excluding
         self.logic = QComboBox()
         self.logic.addItems(['Include', 'Exclude'])
+        self.logic.setMinimumWidth(self.max_width / 16)
         self.logic_text = QLabel('the following artists:')
         # Button to show what songs are return by total filter
         self.commit = QPushButton('Commit', self)

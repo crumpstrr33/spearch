@@ -7,7 +7,7 @@ gpar_dir = par_dir[:par_dir.rfind(path.sep)]
 sys.path.insert(0, par_dir)
 
 from PyQt5.QtWidgets import (QPushButton, QLineEdit, QHBoxLayout, QDialog, 
-    QDialogButtonBox, QLabel, QCheckBox, QVBoxLayout, QHBoxLayout)
+    QDialogButtonBox, QLabel, QCheckBox, QVBoxLayout)
 from PyQt5.QtCore import Qt
 
 from style import LoginStyle, NewPlaylistStyle
