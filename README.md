@@ -6,8 +6,8 @@ A way to search your Spotify playlists with more control. Choose the songs you w
 
 ## Requirements
 - Python packages: [Requests](http://docs.python-requests.org/en/master/), [Selenium](https://pypi.python.org/pypi/selenium), [PyQt5](https://pypi.python.org/pypi/PyQt5)
-- [Geckodriver](https://github.com/mozilla/geckodriver/releases) for Selenium
 - Firefox cause the login page is opened on Firefox and I'm too lazy to add other browser support
+- [Geckodriver](https://github.com/mozilla/geckodriver/releases) so Selenium can work with Firefox
 
 ## How To Set This Up
 - Sign up on the Spotify API and get yourself a client ID and client secret. Don't worry about the client URI, it doesn't matter.
