@@ -1,6 +1,9 @@
-import sys
+from inspect import getsourcefile
+import os.path as path, sys
+cur_dir = path.dirname(path.abspath(getsourcefile(lambda: 0)))
 
 from PyQt5.QtWidgets import QApplication, QDesktopWidget
+from PyQt5.QtGui import QIcon
 
 from main_window import Window
 from popups import Login
@@ -19,6 +22,7 @@ def main():
     # Loops if the exit code is by the new user code
     while current_exit_code == Window.NEW_USER_EXIT_CODE:
         app = QApplication(sys.argv)
+        app.setWindowIcon(QIcon(path.join(cur_dir[:cur_dir.rfind(path.sep)], 'icon', 'spearch_icon.ico')))
 
         # Only initially get the login this way
         if init:
