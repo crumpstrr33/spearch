@@ -44,13 +44,29 @@ class User:
         """
         Get the playlists of the current user (as determined by the token)
         """
-        pl_response = requests.get(self.ME_URL + 'playlists', headers=self.headers)
-
+        # Only allowed a maximum of 50 playlists at a time
+        pl_response = requests.get(self.ME_URL + 'playlists',
+            headers=self.headers, params={'limit': 50})
+    
+        # Get first <=50 playlists
         playlists, pl_ids, pl_lens = [], [], []
         for playlist in pl_response.json()['items']:
             playlists.append(playlist['name'])
             pl_ids.append(playlist['id'])
             pl_lens.append(playlist['tracks']['total'])
+
+        # Get rest of playlists just in case num_pl > 50
+        num_pl = pl_response.json()['total']
+
+        for offset in range(1, ceil(num_pl / 50)):
+            params = {'offset': offset * 50}
+            pl_response = requests.get(self.ME_URL + 'playlists',
+                headers=self.headers, params={'limit': 50, 'offset': offset * 50})
+
+            for playlist in pl_response.json()['items']:
+                playlists.append(playlist['name'])
+                pl_ids.append(playlist['id'])
+                pl_lens.append(playlist['tracks']['total'])
 
         return playlists, pl_ids, pl_lens
 

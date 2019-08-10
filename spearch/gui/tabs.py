@@ -63,7 +63,7 @@ class PlaylistSongsUI(QWidget):
         pl_id - The ID of the playlist
         """
         songs = self.user.get_playlist_songs(pl_id)
-        self.songs_table.add_songs(songs, False)
+        self.songs_table.add_songs(songs, True)
 
 
 class AdvFilterPlaylistsUI(QWidget):
