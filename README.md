@@ -1,8 +1,9 @@
 # Spearch
 A way to search your Spotify playlists with more control. Choose the songs you want which are added to a 'Queue Maker'. When satisfied, these songs can be added to a new playlist or a new queue. This code offers the following functionality:
 1) Choose songs from any one of your playlists by hand
-2) Filter your playlists by song names, artist names and lots of logic
-3) TBD
+2) Filter your playlists by song names, artist names, and more
+3) Create a queue based on your choices above or even a playlist if you so choose
+4) Switch between devices connected to your Spotify account
 
 ## Requirements
 - Python packages: [Requests](http://docs.python-requests.org/en/master/), [Selenium](https://pypi.python.org/pypi/selenium), [PyQt5](https://pypi.python.org/pypi/PyQt5)
