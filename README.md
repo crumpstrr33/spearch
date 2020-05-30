@@ -6,7 +6,7 @@ A way to search your Spotify playlists with more control. Choose the songs you w
 4) Switch between devices connected to your Spotify account
 
 ## Requirements
-- Python packages: [Requests](http://docs.python-requests.org/en/master/), [Selenium](https://pypi.python.org/pypi/selenium), [PyQt5](https://pypi.python.org/pypi/PyQt5)
+- Python packages: [Requests](https://pypi.org/project/requests/), [Selenium](https://pypi.python.org/pypi/selenium), [PyQt5](https://pypi.python.org/pypi/PyQt5)
 - Firefox cause the login page is opened on Firefox and I'm too lazy to add other browser support
 - [Geckodriver](https://github.com/mozilla/geckodriver/releases) so Selenium can work with Firefox
 
