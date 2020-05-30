@@ -1,43 +1,46 @@
 from colorsys import rgb_to_hls, hls_to_rgb
 
-"""
-USEFUL FUNCTIONS
-"""
+""" USEFUL FUNCTIONS """
+
+
 def darken(color, amount):
     # Get the 3 hex values from the string
-    hex_vals = [color[1:][i: i+2] for i in range(0, 5, 2)]
+    hex_vals = [color[1:][i : i + 2] for i in range(0, 5, 2)]
     # Convert them in RGB as normalized floats
-    rgb_vals = [int(x, 16)/255 for x in hex_vals]
+    rgb_vals = [int(x, 16) / 255 for x in hex_vals]
     # Convert to HLS
     hls_vals = rgb_to_hls(*rgb_vals)
     # Change the lightness and convert back to RBG
-    new_vals = hls_to_rgb(hls_vals[0],
-        max(0, 1 - amount*(1 - hls_vals[1])), hls_vals[2])
+    new_vals = hls_to_rgb(
+        hls_vals[0], max(0, 1 - amount * (1 - hls_vals[1])), hls_vals[2]
+    )
     # Convert back to hex values and return
-    return '#' + ''.join([hex(int(255*x))[2:].zfill(2) for x in new_vals])
+    return "#" + "".join([hex(int(255 * x))[2:].zfill(2) for x in new_vals])
+
 
 def lighten(color, amount):
-    return darken(color, 1/amount)
+    return darken(color, 1 / amount)
+
 
 """ CONSTANTS """
 # Background color of app
-BG_COLOR = '#292929'
+BG_COLOR = "#292929"
 # Background color of Song Tables
-STBG_COLOR = '#06603d'
+STBG_COLOR = "#06603d"
 # Widget color
-W_COLOR = '#84bd00'
+W_COLOR = "#84bd00"
 # White (green) color
-WHITE = '#e1f0e1'
+WHITE = "#e1f0e1"
 # Black (green) color
-BLACK = '#0a330a'
+BLACK = "#0a330a"
 # Font for titles
-TITLE_FONT = 'Georgia'
+TITLE_FONT = "Georgia"
 # Non-black font color used
-FONT_COLOR = '#888888'
+FONT_COLOR = "#888888"
 
 """ GLOBALS """
 # Every QPushButton
-BUTTON_STYLE = '''
+BUTTON_STYLE = """
 QPushButton {{
     background-color: {w_color};
     font-weight: 800;
@@ -51,15 +54,12 @@ QPushButton:pressed {{
     border-style: inset;
     background-color: {pressed_color};
 }}
-'''.format(
-    w_color=W_COLOR,
-    black=BLACK,
-    bg_color=BG_COLOR,
-    pressed_color=darken(W_COLOR, 1.5)
+""".format(
+    w_color=W_COLOR, black=BLACK, bg_color=BG_COLOR, pressed_color=darken(W_COLOR, 1.5)
 )
 
 # Every QComboBox
-COMBOBOX_STYLE = '''
+COMBOBOX_STYLE = """
 QComboBox {{
     background-color: {w_color};
     selection-background-color: {select_color};
@@ -88,30 +88,29 @@ QComboBox::down-arrow {{
     image: url(down_arrow.png);
     height: 9px;
 }}
-'''.format(
+""".format(
     w_color=W_COLOR,
     item_color=WHITE,
     select_bg_color=lighten(W_COLOR, 2),
-    select_color=darken(BLACK, 2),    
+    select_color=darken(BLACK, 2),
     black=BLACK,
     arrow_bg_color=lighten(W_COLOR, 1.2),
-    arrow_border_color=darken(W_COLOR, 1.1)
+    arrow_border_color=darken(W_COLOR, 1.1),
 )
 
 # Every LineEdit
-LINEEDIT_STYLE = '''
+LINEEDIT_STYLE = """
 QLineEdit {{
     background-color: {w_color};
     color: {black};
 }}
-'''.format(
-    w_color=W_COLOR,
-    black=darken(BLACK, 2)
+""".format(
+    w_color=W_COLOR, black=darken(BLACK, 2)
 )
 
 # Every QTableWidget (including SongDataTableWidget objects) and a little extra
 # for the SimpleFilterArtistsTable in the Simple Filter tab (bigger text)
-TABLEWIDGET_STYLE = '''
+TABLEWIDGET_STYLE = """
 QTableWidget, SimpleFilterArtistsTable {{
     background-color: {stbg_color};
     selection-background-color: {select_color};
@@ -129,10 +128,8 @@ SimpleFilterArtistsTable {{
     font-size: 20px;
     font-weight: 500;
 }}
-'''.format(
-    stbg_color=STBG_COLOR,
-    select_color=darken(STBG_COLOR, 2),
-    white=WHITE
+""".format(
+    stbg_color=STBG_COLOR, select_color=darken(STBG_COLOR, 2), white=WHITE
 )
 ## How we do this? vvvvv
 ## HOW TO STYLE THE UNSELECTABLE ITEMS OF QTABLEWIDGET
@@ -140,7 +137,7 @@ SimpleFilterArtistsTable {{
 
 """ TAB-SPECIFIC """
 # Advanced Search QGroupBoxes for Filter Playlists tab
-AdvFilterPlaylistStyle = '''
+AdvFilterPlaylistStyle = """
 QGroupBox::title {{
     color: {white};
     padding: 0 8px 6px 4px;
@@ -153,16 +150,16 @@ QCheckBox {{
 {combobox}
 {tablewidget}
 {lineedit}
-'''.format(
+""".format(
     white=WHITE,
     button=BUTTON_STYLE,
     combobox=COMBOBOX_STYLE,
     tablewidget=TABLEWIDGET_STYLE,
-    lineedit=LINEEDIT_STYLE
+    lineedit=LINEEDIT_STYLE,
 )
 
 # Simple Search for Filter Playlist tab
-SimpleFilterPlaylistStyle = '''
+SimpleFilterPlaylistStyle = """
 QLabel {{
     color: {white};
     font-size: 12px;
@@ -171,35 +168,32 @@ QLabel {{
 {button}
 {combobox}
 {tablewidget}
-'''.format(
+""".format(
     white=WHITE,
     button=BUTTON_STYLE,
     combobox=COMBOBOX_STYLE,
-    tablewidget=TABLEWIDGET_STYLE
+    tablewidget=TABLEWIDGET_STYLE,
 )
 
 # Playlist Songs tab
-PlaylistSongsStyle = '''
+PlaylistSongsStyle = """
 {button}
 {combobox}
 {tablewidget}
-'''.format(
-    button=BUTTON_STYLE,
-    combobox=COMBOBOX_STYLE,
-    tablewidget=TABLEWIDGET_STYLE
+""".format(
+    button=BUTTON_STYLE, combobox=COMBOBOX_STYLE, tablewidget=TABLEWIDGET_STYLE
 )
 
 # Queue Maker tab
-QueueMakerStyle = '''
+QueueMakerStyle = """
 {button}
 {tablewidget}
-'''.format(
-    button=BUTTON_STYLE,
-    tablewidget=TABLEWIDGET_STYLE
+""".format(
+    button=BUTTON_STYLE, tablewidget=TABLEWIDGET_STYLE
 )
 
 # Tab bar/widgets
-TabStyle = '''
+TabStyle = """
 QTabWidget::pane {{
     border-top: 3px solid #888888;
 }}
@@ -221,13 +215,12 @@ QTabBar::tab {{
 QTabBar::tab::selected {{
     background: #aaaaaa;
 }}
-'''.format(
-    bg_color=BG_COLOR,
-    font_color=FONT_COLOR
+""".format(
+    bg_color=BG_COLOR, font_color=FONT_COLOR
 )
 
 # Login Popup
-LoginStyle = '''
+LoginStyle = """
 QDialog {{
     background-color: {bg_color};
 }}
@@ -244,15 +237,15 @@ QLineEdit {{
     color: {black};
 }}
 {button}
-'''.format(
+""".format(
     bg_color=BG_COLOR,
     title_font=TITLE_FONT,
     font_color=FONT_COLOR,
     button=BUTTON_STYLE,
-    black=darken(BLACK, 2)
+    black=darken(BLACK, 2),
 )
 
-NewPlaylistStyle = '''
+NewPlaylistStyle = """
 QDialog {{
     background-color: {bg_color};
 }}
@@ -264,10 +257,10 @@ QLabel {{
 }}
 {lineedit}
 {button}
-'''.format(
+""".format(
     bg_color=BG_COLOR,
     title_font=TITLE_FONT,
     font_color=FONT_COLOR,
     lineedit=LINEEDIT_STYLE,
-    button=BUTTON_STYLE
+    button=BUTTON_STYLE,
 )

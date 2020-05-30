@@ -1,17 +1,31 @@
-from PyQt5.QtWidgets import (QWidget, QComboBox, QVBoxLayout, QHBoxLayout,
-    QPushButton, QGridLayout, QLineEdit, QWidgetItem, QCheckBox, QTableWidget,
-    QHeaderView, QLabel, QTableWidgetItem)
+from PyQt5.QtWidgets import (
+    QWidget,
+    QComboBox,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QGridLayout,
+    QLineEdit,
+    QWidgetItem,
+    QCheckBox,
+    QTableWidget,
+    QHeaderView,
+    QLabel,
+    QTableWidgetItem,
+)
 from PyQt5.QtCore import Qt
 
-from custom_widgets import (SimpleFilterArtistsTable,
-    SongDataTableWidget, WidgetGroupBox)
+from custom_widgets import SimpleFilterArtistsTable, SongDataTableWidget, WidgetGroupBox
 from popups import NewPlaylistDialog
-from style import (PlaylistSongsStyle, SimpleFilterPlaylistStyle,
-    AdvFilterPlaylistStyle, QueueMakerStyle)
+from style import (
+    PlaylistSongsStyle,
+    SimpleFilterPlaylistStyle,
+    AdvFilterPlaylistStyle,
+    QueueMakerStyle,
+)
 
 
 class PlaylistSongsUI(QWidget):
-
     def __init__(self, parent, user):
         """
         Tab that shows songs and artists for a given playlist. Songs
@@ -24,8 +38,8 @@ class PlaylistSongsUI(QWidget):
 
         # Display the songs of a playlist that is selected from the combo box
         self.playlists.currentIndexChanged.connect(
-            lambda: self.add_songs(
-                self.user.pl_ids[self.playlists.currentIndex()]))
+            lambda: self.add_songs(self.user.pl_ids[self.playlists.currentIndex()])
+        )
 
     def init_ui(self):
         # Create song list
@@ -41,7 +55,7 @@ class PlaylistSongsUI(QWidget):
         self.add_songs(self.user.pl_ids[0])
 
         # Create button to add songs to queue
-        self.add_songs_button = QPushButton('Add', self)
+        self.add_songs_button = QPushButton("Add", self)
         self.add_songs_button.setMaximumWidth(1.2 * self.add_songs_button.width())
 
         # Put it all together
@@ -86,14 +100,14 @@ class AdvFilterPlaylistsUI(QWidget):
 
     def init_ui(self):
         # Button to add a playlist filter
-        self.add_pl = QPushButton('Add Playlist', self)
+        self.add_pl = QPushButton("Add Playlist", self)
         self.add_pl.clicked.connect(self.add_playlist)
         self.add_pl.setFixedWidth(self.ADD_PLAYLIST_WIDTH)
         # Button to show what songs are return by total filter
-        self.commit = QPushButton('Commit', self)
+        self.commit = QPushButton("Commit", self)
         self.commit.setMaximumWidth(self.max_width / 4)
         # Create button to add songs to queue
-        self.add_songs_button = QPushButton('Add', self)
+        self.add_songs_button = QPushButton("Add", self)
         self.add_songs_button.setMaximumWidth(self.max_width / 4)
         # Table to show filtered songs
         self.songs_table = SongDataTableWidget(False, False, self)
@@ -129,7 +143,7 @@ class AdvFilterPlaylistsUI(QWidget):
 
         # Remove the empty logics, the ones without any filtering keywords
         for playlist, data in filt_dict.items():
-            for logic in ['_and', '_or']:
+            for logic in ["_and", "_or"]:
                 if len(data[logic]) == 1:
                     filt_dict[playlist].pop(logic)
 
@@ -137,14 +151,16 @@ class AdvFilterPlaylistsUI(QWidget):
         # Run through each playlist and filter them
         for playlist, data in filt_dict.items():
             songs = self.user.get_playlist_songs(
-                self.user.pl_ids[self.user.playlists.index(playlist)])
+                self.user.pl_ids[self.user.playlists.index(playlist)]
+            )
             filt_songs += self.user.filter_playlist(songs, _or=data)
 
         # Add songs to the table
         self.songs_table.add_songs(filt_songs, True)
 
-    def _parse_filt_layout(self, layout=None, depth=0, filt_dict=None, pl=None,
-                           logic=None):
+    def _parse_filt_layout(
+        self, layout=None, depth=0, filt_dict=None, pl=None, logic=None
+    ):
         """
         Recursively queries the data from this tab to filter the playlist(s)
         selected. The arguments are used for the recursive-ness.
@@ -182,35 +198,43 @@ class AdvFilterPlaylistsUI(QWidget):
                 # And if it's a custom groupbox...
                 if isinstance(widget, WidgetGroupBox):
                     # Get whether it's an AND or OR if there
-                    if widget.widget_type == 'QCheckBox':
-                        logic = '_or' if widget.groupbox.title() == 'OR' else '_and'
+                    if widget.widget_type == "QCheckBox":
+                        logic = "_or" if widget.groupbox.title() == "OR" else "_and"
                         # Add the choice for 'NOT-ing' the logic
-                        filt_dict[pl][logic]['_not'] = widget.title_widget.isChecked()
+                        filt_dict[pl][logic]["_not"] = widget.title_widget.isChecked()
 
-                    # Recursively run function with the current data 
-                    filt_dict = self._parse_filt_layout(widget.groupbox.layout(),
-                        depth=depth + 1, filt_dict=filt_dict, pl=pl, logic=logic)
+                    # Recursively run function with the current data
+                    filt_dict = self._parse_filt_layout(
+                        widget.groupbox.layout(),
+                        depth=depth + 1,
+                        filt_dict=filt_dict,
+                        pl=pl,
+                        logic=logic,
+                    )
                 # And if it's a combobox...
                 elif isinstance(widget, QComboBox):
                     # Depth 1 is the playlist name, so add that to the dict
                     if depth == 1:
-                        filt_dict[widget.currentText()] = {'_and': {}, '_or': {}}
+                        filt_dict[widget.currentText()] = {"_and": {}, "_or": {}}
                         # Store current playlist name being filled in
                         pl = widget.currentText()
                     # Depth 4 has the filter type, so add that
                     elif depth == 4:
-                        filt_dict[pl][logic][widget.currentText()] = ''
+                        filt_dict[pl][logic][widget.currentText()] = ""
                         # Store current filter type
                         filt = widget.currentText()
                 # And if it's a lineedit...
                 elif isinstance(widget, QLineEdit):
                     # Comma-separate text into a list for filter choice
-                    filt_dict[pl][logic][filt] = list(map(lambda x: x.strip(), widget.displayText().split(',')))
+                    filt_dict[pl][logic][filt] = list(
+                        map(lambda x: x.strip(), widget.displayText().split(","))
+                    )
             # Or if the item is a layout...
             elif isinstance(item, QGridLayout):
                 # Run recursively with current data
-                filt_dict = self._parse_filt_layout(item, depth=depth + 1,
-                    filt_dict=filt_dict, pl=pl, logic=logic)
+                filt_dict = self._parse_filt_layout(
+                    item, depth=depth + 1, filt_dict=filt_dict, pl=pl, logic=logic
+                )
 
         return filt_dict
 
@@ -223,7 +247,7 @@ class AdvFilterPlaylistsUI(QWidget):
         pl_choice.addItems(self.user.playlists)
         pl_choice.setContentsMargins(150, 150, 150, 150)
         # Add AND/OR logic selection
-        add_logic = QPushButton('Add Logic')
+        add_logic = QPushButton("Add Logic")
 
         # Grid made for each playlist choice
         pl_grid = QGridLayout()
@@ -233,7 +257,7 @@ class AdvFilterPlaylistsUI(QWidget):
         pl_grid.setRowStretch(1001, 1)
 
         # Create border with the remove button for the playlist
-        pl_group_box = WidgetGroupBox('Playlist', 'QPushButton', 'Remove', 370, pl_grid)
+        pl_group_box = WidgetGroupBox("Playlist", "QPushButton", "Remove", 370, pl_grid)
 
         # Button click to add a new logic ComboBox
         add_logic.clicked.connect(lambda: self.add_logic(pl_grid))
@@ -253,30 +277,34 @@ class AdvFilterPlaylistsUI(QWidget):
         logic_grid = QGridLayout()
 
         # Create Groupbox for the logic section
-        logic_group_box = WidgetGroupBox('Logic', 'QPushButton', 'Remove', 320, logic_grid)
+        logic_group_box = WidgetGroupBox(
+            "Logic", "QPushButton", "Remove", 320, logic_grid
+        )
 
         # Remove button for logic Groupbox removes it
-        logic_group_box.title_widget.clicked.connect(lambda: logic_group_box.deleteLater())
+        logic_group_box.title_widget.clicked.connect(
+            lambda: logic_group_box.deleteLater()
+        )
 
         # Create grid layout for the AND logic section
         and_grid = QGridLayout()
         # Create groupbox for AND section
-        and_group_box = WidgetGroupBox('AND', 'QCheckBox', 'Not', 365, and_grid)
+        and_group_box = WidgetGroupBox("AND", "QCheckBox", "Not", 365, and_grid)
         # Add the groupbox to the grid layout for the entire logic section
         logic_grid.addWidget(and_group_box, logic_grid.count(), 0)
         # Create button to add filters, add the functionality and add to layout
-        and_add_filter = QPushButton('Add Filter')
+        and_add_filter = QPushButton("Add Filter")
         and_add_filter.clicked.connect(lambda: self.add_filter(and_grid))
         and_grid.addWidget(and_add_filter, 1000, 0)
 
         # Create grid layout for the OR logic section
         or_grid = QGridLayout()
         # Create groupbox for OR section
-        or_group_box = WidgetGroupBox('OR', 'QCheckBox', 'Not', 365, or_grid)
+        or_group_box = WidgetGroupBox("OR", "QCheckBox", "Not", 365, or_grid)
         # Add the groupbox to the grid layout for the entire logic section
         logic_grid.addWidget(or_group_box, logic_grid.count(), 0)
         # Create button to add filters, add the functionality and add to layout
-        or_add_filter = QPushButton('Add Filter')
+        or_add_filter = QPushButton("Add Filter")
         or_add_filter.clicked.connect(lambda: self.add_filter(or_grid))
         or_grid.addWidget(or_add_filter, 1000, 0)
 
@@ -289,22 +317,32 @@ class AdvFilterPlaylistsUI(QWidget):
         """
         # Filter selection
         filter_choice = QComboBox()
-        filter_choice.addItems(['artists_and', 'artists_or', 'artist_and',
-                             'artist_or', 'song_exact', 'song_and', 'song_or'])
+        filter_choice.addItems(
+            [
+                "artists_and",
+                "artists_or",
+                "artist_and",
+                "artist_or",
+                "song_exact",
+                "song_and",
+                "song_or",
+            ]
+        )
 
         # Input for the filtering
         filter_input = QLineEdit()
 
         # Button to remove filter selection
-        filter_remove = QPushButton('Remove')
+        filter_remove = QPushButton("Remove")
 
         filter_grid = QGridLayout()
         filter_grid.addWidget(filter_choice, filter_grid.count(), 0)
         filter_grid.addWidget(filter_remove, filter_grid.count() - 1, 1)
         filter_grid.addWidget(filter_input, filter_grid.count() - 1, 0)
 
-        filter_remove.clicked.connect(lambda:
-            self.remove_widgets(filter_choice, filter_remove, filter_input))
+        filter_remove.clicked.connect(
+            lambda: self.remove_widgets(filter_choice, filter_remove, filter_input)
+        )
 
         logic_layout.addLayout(filter_grid, logic_layout.count(), 0)
 
@@ -336,7 +374,7 @@ class SimpleFilterPlaylistUI(QWidget):
     def init_ui(self):
         # Table of artists to include/exclude
         self.artists_table = SimpleFilterArtistsTable(0, 1, self)
-        self.artists_table.setHorizontalHeaderLabels(['Artists'])
+        self.artists_table.setHorizontalHeaderLabels(["Artists"])
         header = self.artists_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
 
@@ -353,20 +391,22 @@ class SimpleFilterPlaylistUI(QWidget):
         # Get the artists of this playlist
         self.playlists.currentIndexChanged.connect(
             lambda: self.get_unique_artists(
-                self.user.pl_ids[self.playlists.currentIndex()]))
+                self.user.pl_ids[self.playlists.currentIndex()]
+            )
+        )
 
         # Initialize for self.artists
         self.get_unique_artists(self.user.pl_ids[self.playlists.currentIndex()])
         # Combobox choice for including or excluding
         self.logic = QComboBox()
-        self.logic.addItems(['Include', 'Exclude'])
+        self.logic.addItems(["Include", "Exclude"])
         self.logic.setMinimumWidth(self.max_width / 16)
-        self.logic_text = QLabel('the following artists:')
+        self.logic_text = QLabel("the following artists:")
         # Button to show what songs are return by total filter
-        self.commit = QPushButton('Commit', self)
+        self.commit = QPushButton("Commit", self)
         self.commit.setMaximumWidth(self.max_width / 4)
         # Create button to add songs to queue
-        self.add_songs_button = QPushButton('Add', self)
+        self.add_songs_button = QPushButton("Add", self)
         self.add_songs_button.setMaximumWidth(self.max_width / 4)
         # Table to show filtered songs
         self.songs_table = SongDataTableWidget(False, False, self)
@@ -403,8 +443,10 @@ class SimpleFilterPlaylistUI(QWidget):
         """
         A list of the artists in self.artists_table
         """
-        return set(self.artists_table.item(x, 0).text()
-            for x in range(self.artists_table.rowCount()))
+        return set(
+            self.artists_table.item(x, 0).text()
+            for x in range(self.artists_table.rowCount())
+        )
 
     def get_unique_artists(self, pl_id):
         """
@@ -461,14 +503,14 @@ class SimpleFilterPlaylistUI(QWidget):
         for song in self.songs:
             # Since some songs have multiple artists
             for artist in song[1]:
-                if (artist in self.artists_set and logic == 'Include') or \
-                   (artist not in self.artists_set and logic == 'Exclude'):
+                if (artist in self.artists_set and logic == "Include") or (
+                    artist not in self.artists_set and logic == "Exclude"
+                ):
                     songs_to_add.append(song)
         self.songs_table.add_songs(songs_to_add, True)
 
 
 class QueueMakerUI(QWidget):
-
     def __init__(self, parent, user):
         """
         Tab where songs are added from the Playlist Songs and Filter Playlists
@@ -489,11 +531,11 @@ class QueueMakerUI(QWidget):
 
     def init_ui(self):
         # Button to add songs to queue
-        self.create_songs = QPushButton('Create', self)
+        self.create_songs = QPushButton("Create", self)
         # Button to clear songs from queue
-        self.clear_songs = QPushButton('Clear', self)
+        self.clear_songs = QPushButton("Clear", self)
         # Button to save current songs to a new playlist
-        self.create_playlist = QPushButton('Make Playlist', self)
+        self.create_playlist = QPushButton("Make Playlist", self)
 
         # List of songs and their artists
         self.queue_list = SongDataTableWidget(False, False, self)
@@ -526,13 +568,14 @@ class QueueMakerUI(QWidget):
         playlist_name, private, ok = NewPlaylistDialog.getPlaylistName()
 
         if ok:
-            song_ids = [self.queue_list.item(row, 2).text() for row in
-                            range(self.queue_list.rowCount())]
+            song_ids = [
+                self.queue_list.item(row, 2).text()
+                for row in range(self.queue_list.rowCount())
+            ]
             self.user.create_playlist(song_ids, playlist_name, not private)
 
 
 class TabSkeleton(QWidget):
-
     def __init__(self, parent, user):
         """
         Tab Description

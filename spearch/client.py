@@ -11,13 +11,14 @@ import requests
 
 
 class Client:
-    ROOT_URL = 'https://accounts.spotify.com'
-    REQUEST_URL = ROOT_URL + '/authorize'
-    TOKEN_URL = ROOT_URL + '/api/token'
-    REDIRECT_URI = 'https://duckduckgo.com/'
+    ROOT_URL = "https://accounts.spotify.com"
+    REQUEST_URL = ROOT_URL + "/authorize"
+    TOKEN_URL = ROOT_URL + "/api/token"
+    REDIRECT_URI = "https://duckduckgo.com/"
 
-    def __init__(self, user, scope=None, path_ini='client.ini',
-                 path_gd='geckodriver.exe'):
+    def __init__(
+        self, user, scope=None, path_ini="client.ini", path_gd="geckodriver.exe"
+    ):
         """
         Gets a access token based on a user.
 
@@ -36,12 +37,12 @@ class Client:
         self.user = user
         self.path_ini = path_ini
         self.geckodriver_path = path_gd
-        self.scope = scope or ''
+        self.scope = scope or ""
 
         # config stores the data from the .ini file
         self.config = ConfigParser()
         self.config.read(self.path_ini)
-        self.client_id, self.client_secret = self.config['CLIENT'].values()
+        self.client_id, self.client_secret = self.config["CLIENT"].values()
 
         self.access_token, self.token_birth = self.get_token()
 
@@ -52,18 +53,18 @@ class Client:
         a new one. Otherwise, go through the whole process.
         """
         # Checks to see if there already is a refresh token in the .ini file
-        cache_section = self.user + ' ' + self.scope
-        if  cache_section in self.config.sections():
+        cache_section = self.user + " " + self.scope
+        if cache_section in self.config.sections():
             # Takes it if so
             self.refresh_token = self.config[cache_section].values()
 
             # POSTs to get a new access token
-            data = {'grant_type': 'refresh_token', 'refresh_token': self.refresh_token}
+            data = {"grant_type": "refresh_token", "refresh_token": self.refresh_token}
             auth = (self.client_id, self.client_secret)
             token = requests.post(self.TOKEN_URL, data=data, auth=auth).json()
 
             # Return current time as its "birthdate" to determine if expired
-            return token['access_token'], dt.now()
+            return token["access_token"], dt.now()
         else:
             # Do everything fresh if not in cache (i.e. .ini file)
             return self._request_token()
@@ -73,8 +74,12 @@ class Client:
         Gets the URL for authenticating the user (URL where they will have
         to log in).
         """
-        params = {'client_id': self.client_id, 'response_type': 'code',
-                  'redirect_uri': self.REDIRECT_URI, 'scope': self.scope}
+        params = {
+            "client_id": self.client_id,
+            "response_type": "code",
+            "redirect_uri": self.REDIRECT_URI,
+            "scope": self.scope,
+        }
         return requests.get(self.REQUEST_URL, params=params).url
 
     def _get_code(self):
@@ -93,27 +98,27 @@ class Client:
 
         # Wait until login button is pressed or timeout after 10 minutes
         try:
-            WebDriverWait(browser, 600).until(ec.url_contains('en/login?'))
+            WebDriverWait(browser, 600).until(ec.url_contains("en/login?"))
         except TimeoutException:
             # Close browser and error for inactivity
             browser.close()
-            raise TimeoutException('Login has timed out.')
+            raise TimeoutException("Login has timed out.")
 
         # Automatically fill the username input field
-        login_username = browser.find_element_by_id('login-username')
+        login_username = browser.find_element_by_id("login-username")
         login_username.send_keys(self.user)
 
         # Wait until sign in to get code from URL or timeout after 10 minutes
         try:
-            WebDriverWait(browser, 600).until(ec.url_contains('?code='))
+            WebDriverWait(browser, 600).until(ec.url_contains("?code="))
             # When it does, strip the code and close the browser
-            code = browser.current_url.split('?')[1].split('=')[1]
+            code = browser.current_url.split("?")[1].split("=")[1]
             browser.close()
             return code
         except TimeoutException:
             # Close broswer and error for inactivity
             browser.close()
-            raise TimeoutException('Login has timed out.')
+            raise TimeoutException("Login has timed out.")
 
     def _request_token(self, secret=True):
         """
@@ -128,19 +133,22 @@ class Client:
         code = self._get_code()
 
         # POSTs to get the token
-        data = {'code': code, 'redirect_uri': self.REDIRECT_URI,
-                'grant_type': 'authorization_code'}
+        data = {
+            "code": code,
+            "redirect_uri": self.REDIRECT_URI,
+            "grant_type": "authorization_code",
+        }
         auth = (self.client_id, self.client_secret)
         token = requests.post(self.TOKEN_URL, data=data, auth=auth).json()
-        access_token = token['access_token']
-        refresh_token = token['refresh_token']
+        access_token = token["access_token"]
+        refresh_token = token["refresh_token"]
 
         # Add another section to the .ini file to cache refresh token
         if not secret:
-            section_name = self.user + ' ' + self.scope
+            section_name = self.user + " " + self.scope
             self.config.add_section(section_name)
-            self.config.set(section_name, 'refresh_token', refresh_token)
-            with open(self.path_ini, 'w') as ini_file:
+            self.config.set(section_name, "refresh_token", refresh_token)
+            with open(self.path_ini, "w") as ini_file:
                 self.config.write(ini_file)
         self.refresh_token = refresh_token
 

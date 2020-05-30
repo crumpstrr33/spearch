@@ -1,21 +1,36 @@
 # Allows for import of user.py
 from inspect import getsourcefile
 import os.path as path, sys
+
 cur_dir = path.dirname(path.abspath(getsourcefile(lambda: 0)))
-sys.path.insert(0, cur_dir[:cur_dir.rfind(path.sep)])
+sys.path.insert(0, cur_dir[: cur_dir.rfind(path.sep)])
 
 from functools import partial
 
-from PyQt5.QtWidgets import (QMainWindow, QAction, QWidget, QVBoxLayout,
-    QTabWidget, QTableWidgetItem, qApp, QDialog, QMenu)
+from PyQt5.QtWidgets import (
+    QMainWindow,
+    QAction,
+    QWidget,
+    QVBoxLayout,
+    QTabWidget,
+    QTableWidgetItem,
+    qApp,
+    QDialog,
+    QMenu,
+)
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
-from tabs import (PlaylistSongsUI, AdvFilterPlaylistsUI, SimpleFilterPlaylistUI,
-    QueueMakerUI) 
+from tabs import (
+    PlaylistSongsUI,
+    AdvFilterPlaylistsUI,
+    SimpleFilterPlaylistUI,
+    QueueMakerUI,
+)
 from popups import Login
 from user import User
 from style import TabStyle, BG_COLOR
+
 sys.path.pop(0)
 
 
@@ -42,30 +57,30 @@ class Window(QMainWindow):
         self.init_menu()
 
     def init_ui(self, max_height, max_width):
-        self.setWindowTitle('Spearch')
+        self.setWindowTitle("Spearch")
 
         self.tabs = Tabs(self, self.user, max_height, max_width)
         self.setCentralWidget(self.tabs)
 
-        self.setStyleSheet('QMainWindow {{background-color: {}}}'.format(BG_COLOR))
+        self.setStyleSheet("QMainWindow {{background-color: {}}}".format(BG_COLOR))
 
     def init_menu(self):
         # Init menu
         self.menu = self.menuBar()
-        file_menu = self.menu.addMenu('File')
-        edit_menu = self.menu.addMenu('Edit')
+        file_menu = self.menu.addMenu("File")
+        edit_menu = self.menu.addMenu("Edit")
 
         ### FILE ###
         # New user
-        new_user = QAction('New User', self)
-        new_user.setShortcut('Ctrl+N')
-        new_user.setStatusTip('Sign in with new user')
+        new_user = QAction("New User", self)
+        new_user.setShortcut("Ctrl+N")
+        new_user.setStatusTip("Sign in with new user")
         new_user.triggered.connect(self._relogin)
 
         # Quit
-        quit_app = QAction('Quit', self)
-        quit_app.setShortcut('Ctrl+Q')
-        quit_app.setStatusTip('Quit Application')
+        quit_app = QAction("Quit", self)
+        quit_app.setShortcut("Ctrl+Q")
+        quit_app.setStatusTip("Quit Application")
         quit_app.triggered.connect(qApp.quit)
 
         # Add to File
@@ -75,30 +90,29 @@ class Window(QMainWindow):
 
         ### EDIT ###
         # Choose available devices
-        self.avail = QMenu('Choose Different Device', self)
-        self.avail.setStatusTip('Choose a different available device')
+        self.avail = QMenu("Choose Different Device", self)
+        self.avail.setStatusTip("Choose a different available device")
         self._reset_avail_devices()
 
         # Check for new available devices (submenu of self.avail)
-        check_avail = QAction('Check Available Devices', self)
-        check_avail.setShortcut('Ctrl+D')
-        check_avail.setStatusTip('Check for new available devices')
+        check_avail = QAction("Check Available Devices", self)
+        check_avail.setShortcut("Ctrl+D")
+        check_avail.setStatusTip("Check for new available devices")
         check_avail.triggered.connect(self._reset_avail_devices)
 
         # Change from simple to advanced mode for Filter Playlist tab
-        toggle_filter = QMenu('Toggle Filter Playlists tab', self)
-        toggle_filter.setStatusTip('Toggle between simple and advanced mode' +
-                                   ' for the Filter Playlists tab')
+        toggle_filter = QMenu("Toggle Filter Playlists tab", self)
+        toggle_filter.setStatusTip(
+            "Toggle between simple and advanced mode" + " for the Filter Playlists tab"
+        )
         # The two options in the submenu
-        self.simple_filter = QAction('Simple', self)
+        self.simple_filter = QAction("Simple", self)
         # Start with simple filter selected
         self.simple_filter.setFont(self.BOLD_FONT)
-        self.advanced_filter = QAction('Advanced', self)
+        self.advanced_filter = QAction("Advanced", self)
         # Do the changing when clicked
-        self.simple_filter.triggered.connect(partial(
-            self._toggle_filter, 'simple'))
-        self.advanced_filter.triggered.connect(partial(
-            self._toggle_filter, 'advanced'))
+        self.simple_filter.triggered.connect(partial(self._toggle_filter, "simple"))
+        self.advanced_filter.triggered.connect(partial(self._toggle_filter, "advanced"))
         toggle_filter.addAction(self.simple_filter)
         toggle_filter.addAction(self.advanced_filter)
 
@@ -117,20 +131,20 @@ class Window(QMainWindow):
                        'Simple' in the menu and change the second tab to the
                        simplified version and vis versa
         """
-        if ui_to_toggle == 'simple':
+        if ui_to_toggle == "simple":
             # Toggle the bold fonts
             self.simple_filter.setFont(self.BOLD_FONT)
             self.advanced_filter.setFont(self.NORMAL_FONT)
             # Remove old tab and insert new one
             self.tabs.tabs.removeTab(1)
-            self.tabs.tabs.insertTab(1, self.tabs.simp_filt_tab, 'Filter Playlists')
-        elif ui_to_toggle == 'advanced':
+            self.tabs.tabs.insertTab(1, self.tabs.simp_filt_tab, "Filter Playlists")
+        elif ui_to_toggle == "advanced":
             # Toggle the bold fonts
-            self.simple_filter.setFont(self.NORMAL_FONT)     
+            self.simple_filter.setFont(self.NORMAL_FONT)
             self.advanced_filter.setFont(self.BOLD_FONT)
             # Remove old tab and insert new one
             self.tabs.tabs.removeTab(1)
-            self.tabs.tabs.insertTab(1, self.tabs.adv_filt_tab, 'Filter Playlists')
+            self.tabs.tabs.insertTab(1, self.tabs.adv_filt_tab, "Filter Playlists")
         # Set back to current tab (otherwise moves to next tab)
         self.tabs.tabs.setCurrentIndex(1)
 
@@ -150,18 +164,18 @@ class Window(QMainWindow):
 
         # Add each one
         for device_info in self.user.get_available_devices():
-            name = device_info['name']
+            name = device_info["name"]
 
             device = QAction(name, self)
             # Bold the chosen device
-            if (device_info['is_active'] and device_id is None) or \
-               (device_info['id'] == device_id):
+            if (device_info["is_active"] and device_id is None) or (
+                device_info["id"] == device_id
+            ):
                 device.setFont(self.BOLD_FONT)
 
             # Use functools.partial cause otherwise with just lambda, the
             # closure messing it up and only uses last instance of device_info
-            device.triggered.connect(partial(
-                self._change_device, device_info['id']))
+            device.triggered.connect(partial(self._change_device, device_info["id"]))
             # Add to submenu
             self.avail.addAction(device)
 
@@ -188,7 +202,6 @@ class Window(QMainWindow):
 
 
 class Tabs(QWidget):
-
     def __init__(self, parent, user, max_height, max_width):
         """
         Widget that creates each tab and pull the layouts for each one from
@@ -207,26 +220,32 @@ class Tabs(QWidget):
         self.createq_tab = QueueMakerUI(None, user)
 
         # Add tabs
-        self.tabs.addTab(self.pl_tab, 'Playlist Songs')
-        self.tabs.addTab(self.simp_filt_tab, 'Filter Playlists')
-        self.tabs.addTab(self.createq_tab, 'Queue Maker')
+        self.tabs.addTab(self.pl_tab, "Playlist Songs")
+        self.tabs.addTab(self.simp_filt_tab, "Filter Playlists")
+        self.tabs.addTab(self.createq_tab, "Queue Maker")
 
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
         # Adds selected songs from Playlist tab to the Current Queue tab
-        self.pl_tab.add_songs_button.clicked.connect(lambda:
-            self.createq_tab.queue_list.add_songs(
-                self.pl_tab.songs_table, False, True))
+        self.pl_tab.add_songs_button.clicked.connect(
+            lambda: self.createq_tab.queue_list.add_songs(
+                self.pl_tab.songs_table, False, True
+            )
+        )
         # Adds songs from Simple/Advanced Filter tab to Current Queue tab
-        self.simp_filt_tab.add_songs_button.clicked.connect(lambda:
-            self.createq_tab.queue_list.add_songs(
-                self.simp_filt_tab.songs_table, False, False))
-        self.adv_filt_tab.add_songs_button.clicked.connect(lambda:
-            self.createq_tab.queue_list.add_songs(
-                self.adv_filt_tab.songs_table, False, False))
-        
+        self.simp_filt_tab.add_songs_button.clicked.connect(
+            lambda: self.createq_tab.queue_list.add_songs(
+                self.simp_filt_tab.songs_table, False, False
+            )
+        )
+        self.adv_filt_tab.add_songs_button.clicked.connect(
+            lambda: self.createq_tab.queue_list.add_songs(
+                self.adv_filt_tab.songs_table, False, False
+            )
+        )
+
         self.createq_tab.create_songs.clicked.connect(self._create_queue)
 
         self.tabs.setStyleSheet(TabStyle)

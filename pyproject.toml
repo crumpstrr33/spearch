@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "spearch"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+requests = "^2.23.0"
+selenium = "^3.141.0"
+PyQt5 = "^5.14.2"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

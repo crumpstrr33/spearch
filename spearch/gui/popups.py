@@ -1,38 +1,49 @@
 # Allows for import of client.py
 from inspect import getsourcefile
 import os.path as path, sys
+
 cur_dir = path.dirname(path.abspath(getsourcefile(lambda: 0)))
-par_dir = cur_dir[:cur_dir.rfind(path.sep)]
-gpar_dir = par_dir[:par_dir.rfind(path.sep)]
+par_dir = cur_dir[: cur_dir.rfind(path.sep)]
+gpar_dir = par_dir[: par_dir.rfind(path.sep)]
 sys.path.insert(0, par_dir)
 
-from PyQt5.QtWidgets import (QPushButton, QLineEdit, QHBoxLayout, QDialog, 
-    QDialogButtonBox, QLabel, QCheckBox, QVBoxLayout)
+from PyQt5.QtWidgets import (
+    QPushButton,
+    QLineEdit,
+    QHBoxLayout,
+    QDialog,
+    QDialogButtonBox,
+    QLabel,
+    QCheckBox,
+    QVBoxLayout,
+)
 from PyQt5.QtCore import Qt
 
 from style import LoginStyle, NewPlaylistStyle
 from client import Client
+
 # After import, remove from path and no one is the wiser
 sys.path.pop(0)
 
 
-SCOPE = ' '.join([
-    'user-modify-playback-state',
-    'playlist-read-private playlist-read-collaborative',
-    'playlist-modify-private playlist-modify-public',
-    'user-read-playback-state'
-])
+SCOPE = " ".join(
+    [
+        "user-modify-playback-state",
+        "playlist-read-private playlist-read-collaborative",
+        "playlist-modify-private playlist-modify-public",
+        "user-read-playback-state",
+    ]
+)
 
 
 class Login(QDialog):
-
     def __init__(self):
         """
         Login page. Pretty straightfoward.
         """
         super().__init__()
-        self.login_text = QLabel('Enter username')
-        self.button = QPushButton('Login', self)
+        self.login_text = QLabel("Enter username")
+        self.button = QPushButton("Login", self)
         self.button.clicked.connect(self.accept)
         self.input = QLineEdit()
 
@@ -55,7 +66,7 @@ class Login(QDialog):
         v_box.addStretch()
 
         self.setLayout(v_box)
-        self.setWindowTitle('Spearch')
+        self.setWindowTitle("Spearch")
 
         self.setStyleSheet(LoginStyle)
 
@@ -64,31 +75,33 @@ class Login(QDialog):
         Login with text in the input. This creates a Client object which starts
         up the Spotify login. That's where the password is typed.
         """
-        self.client = Client(self.input.text(), SCOPE,
-                             path.join(gpar_dir, 'client.ini'),
-                             path.join(gpar_dir, 'geckodriver.exe'))
+        self.client = Client(
+            self.input.text(),
+            SCOPE,
+            path.join(gpar_dir, "client.ini"),
+            path.join(gpar_dir, "geckodriver.exe"),
+        )
         # Added to give a correct return from exec_()
         super().accept()
 
 
 class NewPlaylistDialog(QDialog):
-
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('Playlist Name')
+        self.setWindowTitle("Playlist Name")
 
         # Header
-        header = QLabel('New Playlist Name')
+        header = QLabel("New Playlist Name")
         # Line Edit for playlist name
         self.playlist_name = QLineEdit()
         # Checkbox for private playlist
         self.private = QCheckBox()
         # Checkbox description
-        private_desc = QLabel('Check for private playlist')
+        private_desc = QLabel("Check for private playlist")
         # Buttons
         buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            Qt.Horizontal, self)
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
+        )
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 

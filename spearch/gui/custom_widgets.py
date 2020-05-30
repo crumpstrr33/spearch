@@ -1,6 +1,16 @@
-from PyQt5.QtWidgets import (QTableWidget, QAbstractItemView, QHeaderView,
-    QTableWidgetItem, QWidget, QVBoxLayout, QGroupBox, QPushButton, QCheckBox,
-    QMenu, QAction)
+from PyQt5.QtWidgets import (
+    QTableWidget,
+    QAbstractItemView,
+    QHeaderView,
+    QTableWidgetItem,
+    QWidget,
+    QVBoxLayout,
+    QGroupBox,
+    QPushButton,
+    QCheckBox,
+    QMenu,
+    QAction,
+)
 from PyQt5.QtCore import Qt
 
 from style import BG_COLOR
@@ -20,11 +30,11 @@ class SimpleFilterArtistsTable(QTableWidget):
         self.verticalHeader().setVisible(False)
 
     def mousePressEvent(self, event):
-        if (event.button() == Qt.RightButton and
-            self.rowAt(event.pos().y()) != -1):
-            delete = QAction('Delete', self)
-            delete.triggered.connect(lambda:
-                self.removeRow(self.rowAt(event.pos().y())))
+        if event.button() == Qt.RightButton and self.rowAt(event.pos().y()) != -1:
+            delete = QAction("Delete", self)
+            delete.triggered.connect(
+                lambda: self.removeRow(self.rowAt(event.pos().y()))
+            )
 
             self.menu = QMenu(self)
             self.menu.addAction(delete)
@@ -32,7 +42,6 @@ class SimpleFilterArtistsTable(QTableWidget):
 
 
 class SongDataTableWidget(QTableWidget):
-
     def __init__(self, selectable, sortable, parent=None):
         """
         A customized version of the QTableWidget. It is used for listing and
@@ -52,7 +61,7 @@ class SongDataTableWidget(QTableWidget):
         self.sortable = sortable
 
         # Give the headers for Song and Artists
-        self.setHorizontalHeaderLabels(['Song', 'Artists'])
+        self.setHorizontalHeaderLabels(["Song", "Artists"])
         # Remove the gridlines of the table
         self.setShowGrid(False)
         # Remove editing of the cells
@@ -124,7 +133,7 @@ class SongDataTableWidget(QTableWidget):
                 # Create song, artist and ID widget items
                 song = QTableWidgetItem(songs.item(row, 0))
                 artist = QTableWidgetItem(songs.item(row, 1).text())
-                song_id =  QTableWidgetItem(songs.item(row, 2).text())
+                song_id = QTableWidgetItem(songs.item(row, 2).text())
 
                 self._add_row(ind, song, artist, song_id)
         else:
@@ -138,7 +147,7 @@ class SongDataTableWidget(QTableWidget):
 
                 # Create song, artist and ID widget items
                 song = QTableWidgetItem(song_data[0])
-                artist = QTableWidgetItem(', '.join(song_data[1]))
+                artist = QTableWidgetItem(", ".join(song_data[1]))
                 song_id = QTableWidgetItem(song_data[2])
 
                 self._add_row(ind, song, artist, song_id)
@@ -165,9 +174,9 @@ class SongDataTableWidget(QTableWidget):
 
 
 class WidgetGroupBox(QWidget):
-
-    def __init__(self, title, widget_type, widget_name, widget_placement,
-                 layout, parent=None):
+    def __init__(
+        self, title, widget_type, widget_name, widget_placement, layout, parent=None
+    ):
         """
         A slightly customized QGroupBox widget where a widget is found aside
         the title of the groupbox.
@@ -205,23 +214,29 @@ class WidgetGroupBox(QWidget):
         Gets the appropriate widget. Supports the following widgets:
         QPushButton, QCheckBox.
         """
-        if widget_type == 'QPushButton':
+        if widget_type == "QPushButton":
             widget = QPushButton(widget_name, parent=self)
             # Make the button smaller with all this
-            widget.setStyleSheet('''
+            widget.setStyleSheet(
+                """
                 font-size: 10px;
-            ''')
+            """
+            )
             widget.setMaximumHeight(22)
             width = widget.fontMetrics().boundingRect(widget_name).width()
             widget.setFixedWidth(1.2 * width)
-        elif widget_type == 'QCheckBox':
+        elif widget_type == "QCheckBox":
             widget = QCheckBox(widget_name, parent=self)
             # Centers the checkbox in the whitespace
-            widget.setStyleSheet('''
+            widget.setStyleSheet(
+                """
                 margin-bottom: 10px;
                 background: {};
                 padding-left: 6px;
-            '''.format(BG_COLOR))
+            """.format(
+                    BG_COLOR
+                )
+            )
             widget.setMaximumWidth(46)
 
         return widget

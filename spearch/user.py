@@ -9,34 +9,46 @@ import requests
 """
 Binary operators as functions for the song filtering
 """
+
+
 def _equiv(x, y):
     return x == y
+
+
 def _in(x, y):
     return x in y
+
+
 def _and_iter(l1, l2):
-    if len(l1) != len(l2):  
-        raise Exception('Lengths of lists should equal for comparing.')
+    if len(l1) != len(l2):
+        raise Exception("Lengths of lists should equal for comparing.")
     return [l1[x] and l2[x] for x in range(len(l1))]
+
+
 def _or_iter(l1, l2):
     if len(l1) != len(l2):
-        raise Exception('Lengths of lists should equal for comparing.')
+        raise Exception("Lengths of lists should equal for comparing.")
     return [l1[x] or l2[x] for x in range(len(l1))]
+
+
 def _not_iter(l1):
     return [not x for x in l1]
 
 
 class User:
-    URL = 'https://api.spotify.com/v1/'
-    ME_URL = URL + 'me/'
-    TRACK = 'spotify:track:'
+    URL = "https://api.spotify.com/v1/"
+    ME_URL = URL + "me/"
+    TRACK = "spotify:track:"
 
     def __init__(self, token, token_birth):
         self.token = token
         self.token_birth = token_birth
-        self.headers = {'Authorization': 'Bearer ' + self.token}
-        self.headers_json = {'Authorization': 'Bearer ' + self.token,
-                             'Content-Type': 'application/json'}
-        self.user = requests.get(self.ME_URL, headers=self.headers).json()['id']
+        self.headers = {"Authorization": "Bearer " + self.token}
+        self.headers_json = {
+            "Authorization": "Bearer " + self.token,
+            "Content-Type": "application/json",
+        }
+        self.user = requests.get(self.ME_URL, headers=self.headers).json()["id"]
         self.playlists, self.pl_ids, self.pl_lens = self._get_playlists()
         self.queue = []
 
@@ -45,28 +57,32 @@ class User:
         Get the playlists of the current user (as determined by the token)
         """
         # Only allowed a maximum of 50 playlists at a time
-        pl_response = requests.get(self.ME_URL + 'playlists',
-            headers=self.headers, params={'limit': 50})
-    
+        pl_response = requests.get(
+            self.ME_URL + "playlists", headers=self.headers, params={"limit": 50}
+        )
+
         # Get first <=50 playlists
         playlists, pl_ids, pl_lens = [], [], []
-        for playlist in pl_response.json()['items']:
-            playlists.append(playlist['name'])
-            pl_ids.append(playlist['id'])
-            pl_lens.append(playlist['tracks']['total'])
+        for playlist in pl_response.json()["items"]:
+            playlists.append(playlist["name"])
+            pl_ids.append(playlist["id"])
+            pl_lens.append(playlist["tracks"]["total"])
 
         # Get rest of playlists just in case num_pl > 50
-        num_pl = pl_response.json()['total']
+        num_pl = pl_response.json()["total"]
 
         for offset in range(1, ceil(num_pl / 50)):
-            params = {'offset': offset * 50}
-            pl_response = requests.get(self.ME_URL + 'playlists',
-                headers=self.headers, params={'limit': 50, 'offset': offset * 50})
+            params = {"offset": offset * 50}
+            pl_response = requests.get(
+                self.ME_URL + "playlists",
+                headers=self.headers,
+                params={"limit": 50, "offset": offset * 50},
+            )
 
-            for playlist in pl_response.json()['items']:
-                playlists.append(playlist['name'])
-                pl_ids.append(playlist['id'])
-                pl_lens.append(playlist['tracks']['total'])
+            for playlist in pl_response.json()["items"]:
+                playlists.append(playlist["name"])
+                pl_ids.append(playlist["id"])
+                pl_lens.append(playlist["tracks"]["total"])
 
         return playlists, pl_ids, pl_lens
 
@@ -77,14 +93,19 @@ class User:
         Parameters:
         device_id - The ID of the device to switch to
         """
-        requests.put(self.ME_URL + 'player', headers=self.headers,
-                     data=dumps({'device_ids': [device_id]}))
+        requests.put(
+            self.ME_URL + "player",
+            headers=self.headers,
+            data=dumps({"device_ids": [device_id]}),
+        )
 
     def get_available_devices(self):
         """
         Get the available devices of the current user
         """
-        return requests.get(self.ME_URL + 'player/devices', headers=self.headers).json()['devices']
+        return requests.get(
+            self.ME_URL + "player/devices", headers=self.headers
+        ).json()["devices"]
 
     def play(self, data={}):
         """
@@ -96,13 +117,15 @@ class User:
         Parameters:
         data - (default {}) Song URIs to be passed to create a queue
         """
-        requests.put(self.ME_URL + 'player/play', headers=self.headers, data=dumps(data))
+        requests.put(
+            self.ME_URL + "player/play", headers=self.headers, data=dumps(data)
+        )
 
     def pause(self):
         """
         Pauses the music
         """
-        requests.put(self.ME_URL + 'player/pause', headers=self.headers)
+        requests.put(self.ME_URL + "player/pause", headers=self.headers)
 
     def get_playlist_songs(self, pl_id):
         """
@@ -114,27 +137,32 @@ class User:
         """
         # Make sure the playlist name exists
         if pl_id not in self.pl_ids:
-            raise Exception('Playlist ID {} not found for user {}'.format(
-                pl_id, self.user))
+            raise Exception(
+                "Playlist ID {} not found for user {}".format(pl_id, self.user)
+            )
 
         # Get playlist number of tracks for given playlist name
         pl_len = self.pl_lens[self.pl_ids.index(pl_id)]
 
         # Form URL to get song data
-        url = self.URL + 'users/{}/playlists/{}/tracks'.format(self.user, pl_id)
+        url = self.URL + "users/{}/playlists/{}/tracks".format(self.user, pl_id)
 
         songs = set()
         # API only allows 100 songs at a time for some reason, so keep
         # requesting 100 until we got them all
         for offset in range(ceil(pl_len / 100)):
-            params = {'offset': offset * 100}
+            params = {"offset": offset * 100}
             song_response = requests.get(url, headers=self.headers, params=params)
-            song_data = song_response.json()['items']
+            song_data = song_response.json()["items"]
 
             for song in song_data:
-                songs.add((song['track']['name'],
-                           tuple([data['name'] for data in song['track']['artists']]),
-                           song['track']['id']))
+                songs.add(
+                    (
+                        song["track"]["name"],
+                        tuple([data["name"] for data in song["track"]["artists"]]),
+                        song["track"]["id"],
+                    )
+                )
 
         return songs
 
@@ -146,8 +174,9 @@ class User:
         mask = []
         for song in songs:
             # Map to lowercase, check if names given in artist list for songs
-            mask.append(logic([y.lower() in map(lambda x: x.lower(), song[1])
-                               for y in filt]))
+            mask.append(
+                logic([y.lower() in map(lambda x: x.lower(), song[1]) for y in filt])
+            )
         return mask
 
     @staticmethod
@@ -158,8 +187,9 @@ class User:
         mask = []
         for song in songs:
             # In lowercase, double loop to check against each artist for songs
-            mask.append(any([logic([y.lower() in x.lower() for y in filt])
-                             for x in song[1]]))
+            mask.append(
+                any([logic([y.lower() in x.lower() for y in filt]) for x in song[1]])
+            )
         return mask
 
     @staticmethod
@@ -170,8 +200,7 @@ class User:
         mask = []
         for song in songs:
             # In lowercase, look for == (exact) or 'in' the song name for songs
-            mask.append(logic([compare(x.lower(), song[0].lower())
-                               for x in filt]))
+            mask.append(logic([compare(x.lower(), song[0].lower()) for x in filt]))
         return mask
 
     def filter_playlist(self, songs, _and=None, _or=None, _not=False, **kwargs):
@@ -228,8 +257,9 @@ class User:
         mask = self._build_mask(songs, _and=_and, _or=_or, **kwargs)
         return set(compress(songs, mask))
 
-    def _build_mask(self, songs, mask=None, _and=None, _or=None, _not=False,
-                    or_logic=True, **kwargs):
+    def _build_mask(
+        self, songs, mask=None, _and=None, _or=None, _not=False, or_logic=True, **kwargs
+    ):
         """
         Creates the mask used to filter a list of songs recursively. Called from
         filter_playlist.
@@ -254,26 +284,34 @@ class User:
                 mask = logic(self._build_mask(songs, **_and_n, or_logic=False), mask)
 
         # Add artists AND
-        if 'artists_and' in kwargs:
-            mask = logic(mask, self._make_mask_artists(songs, all, kwargs['artists_and']))
+        if "artists_and" in kwargs:
+            mask = logic(
+                mask, self._make_mask_artists(songs, all, kwargs["artists_and"])
+            )
         # Add artists OR
-        if 'artists_or' in kwargs:
-            mask = logic(mask, self._make_mask_artists(songs, any, kwargs['artists_or']))
+        if "artists_or" in kwargs:
+            mask = logic(
+                mask, self._make_mask_artists(songs, any, kwargs["artists_or"])
+            )
         # Add artist AND
-        if 'artist_and' in kwargs:
-            mask = logic(mask, self._make_mask_artist(songs, all, kwargs['artist_and']))
+        if "artist_and" in kwargs:
+            mask = logic(mask, self._make_mask_artist(songs, all, kwargs["artist_and"]))
         # Add artist OR
-        if 'artist_or' in kwargs:
-            mask = logic(mask, self._make_mask_artist(songs, any, kwargs['artist_or']))
+        if "artist_or" in kwargs:
+            mask = logic(mask, self._make_mask_artist(songs, any, kwargs["artist_or"]))
         # Add song EXACT
-        if 'song_exact' in kwargs:
-            mask = logic(mask, self._make_mask_song(songs, any, _equiv, kwargs['song_exact']))
+        if "song_exact" in kwargs:
+            mask = logic(
+                mask, self._make_mask_song(songs, any, _equiv, kwargs["song_exact"])
+            )
         # Add song AND
-        if 'song_and' in kwargs:
-            mask = logic(mask, self._make_mask_song(songs, all, _in, kwargs['song_and']))
+        if "song_and" in kwargs:
+            mask = logic(
+                mask, self._make_mask_song(songs, all, _in, kwargs["song_and"])
+            )
         # Add Song OR
-        if 'song_or' in kwargs:
-            mask = logic(mask, self._make_mask_song(songs, any, _in, kwargs['song_or']))
+        if "song_or" in kwargs:
+            mask = logic(mask, self._make_mask_song(songs, any, _in, kwargs["song_or"]))
 
         return _not_iter(mask) if _not else mask
 
@@ -300,7 +338,7 @@ class User:
                         self.queue.append(song_uri)
                 else:
                     self.queue.append(song_uri)
-        self.play(data={'uris': self.queue})
+        self.play(data={"uris": self.queue})
 
     def create_playlist(self, songs, name, public=True):
         """
@@ -313,10 +351,11 @@ class User:
                  or private (False)
         """
         # Create the playlist and store the playlist ID
-        url = self.URL + 'users/{}/playlists'.format(self.user)
-        data = {'name': name, 'public': public}
-        pl_id = requests.post(url, headers=self.headers_json,
-                              data=dumps(data)).json()['id']
+        url = self.URL + "users/{}/playlists".format(self.user)
+        data = {"name": name, "public": public}
+        pl_id = requests.post(url, headers=self.headers_json, data=dumps(data)).json()[
+            "id"
+        ]
 
         # Add new playlist to the playlist info
         self.playlists.append(name)
@@ -336,8 +375,8 @@ class User:
         pl_id - The id of the playlist
         songs - The songs to add to the 'queue'
         """
-        url = self.URL + 'users/{}/playlists/{}/tracks'.format(self.user, pl_id)
-        data = {'uris': [self.TRACK + song for song in songs]}
+        url = self.URL + "users/{}/playlists/{}/tracks".format(self.user, pl_id)
+        data = {"uris": [self.TRACK + song for song in songs]}
         requests.post(url, headers=self.headers_json, data=dumps(data))
 
         # Increase number of songs for this playlist by this addition
@@ -350,8 +389,7 @@ class User:
         Parameters:
         pl_id - The id of the playlist to delete
         """
-        url = self.URL + 'users/{}/playlists/{}/followers'.format(
-              self.user, pl_id)
+        url = self.URL + "users/{}/playlists/{}/followers".format(self.user, pl_id)
         requests.delete(url, headers=self.headers)
 
         # Remove the playlist info
